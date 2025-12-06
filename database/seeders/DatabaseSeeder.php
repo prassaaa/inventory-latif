@@ -16,6 +16,10 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             BranchSeeder::class,
             UserSeeder::class,
+            ProductSeeder::class,
+            BranchStockSeeder::class,
+            TransferSeeder::class,
+            SaleSeeder::class,
         ]);
     }
 }

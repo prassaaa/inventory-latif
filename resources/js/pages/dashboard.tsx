@@ -158,7 +158,7 @@ export default function Dashboard({ stats, salesByBranch, lowStockItems, branch,
                                             formatter={(value: number) => [formatCurrency(value), 'Total']}
                                             labelFormatter={(label) => `Cabang: ${label}`}
                                         />
-                                        <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                                        <Bar dataKey="total" fill="#8884d8" radius={[4, 4, 0, 0]} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </CardContent>
