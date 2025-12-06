@@ -1,4 +1,3 @@
-import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -10,34 +9,102 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { usePermissions } from '@/hooks/use-permissions';
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
+import {
+    ArrowLeftRight,
+    BarChart3,
+    Building2,
+    FolderTree,
+    LayoutGrid,
+    Package,
+    ShoppingCart,
+    Users,
+    Warehouse,
+} from 'lucide-react';
 import AppLogo from './app-logo';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-];
-
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
-];
-
 export function AppSidebar() {
+    const { isSuperAdmin } = usePermissions();
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'Dashboard',
+            href: dashboard(),
+            icon: LayoutGrid,
+        },
+    ];
+
+    // Master Data - Super Admin only for branches & users
+    const masterDataItems: NavItem[] = [
+        ...(isSuperAdmin
+            ? [
+                  {
+                      title: 'Cabang',
+                      href: '/branches',
+                      icon: Building2,
+                  },
+              ]
+            : []),
+        {
+            title: 'Kategori',
+            href: '/categories',
+            icon: FolderTree,
+        },
+        {
+            title: 'Produk',
+            href: '/products',
+            icon: Package,
+        },
+        ...(isSuperAdmin
+            ? [
+                  {
+                      title: 'Pengguna',
+                      href: '/users',
+                      icon: Users,
+                  },
+              ]
+            : []),
+    ];
+
+    const inventoryItems: NavItem[] = [
+        {
+            title: 'Stok',
+            href: '/stocks',
+            icon: Warehouse,
+        },
+        {
+            title: 'Transfer',
+            href: '/transfers',
+            icon: ArrowLeftRight,
+        },
+        {
+            title: 'Penjualan',
+            href: '/sales',
+            icon: ShoppingCart,
+        },
+    ];
+
+    const reportItems: NavItem[] = [
+        {
+            title: 'Laporan Penjualan',
+            href: '/reports/sales',
+            icon: BarChart3,
+        },
+        {
+            title: 'Laporan Stok',
+            href: '/reports/stock',
+            icon: Warehouse,
+        },
+        {
+            title: 'Laporan Transfer',
+            href: '/reports/transfers',
+            icon: ArrowLeftRight,
+        },
+    ];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -53,11 +120,13 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={mainNavItems} label="Menu" />
+                <NavMain items={masterDataItems} label="Master Data" />
+                <NavMain items={inventoryItems} label="Inventory" />
+                <NavMain items={reportItems} label="Laporan" />
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>
