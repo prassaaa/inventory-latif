@@ -34,7 +34,7 @@
                 <strong>Tanggal Kirim:</strong> {{ $transfer->sent_at ? $transfer->sent_at->format('d/m/Y H:i') : '-' }}
             </td>
             <td style="width: 50%; vertical-align: top;">
-                <strong>Status:</strong> {{ strtoupper($transfer->status) }}
+                <strong>Status:</strong> {{ strtoupper($transfer->status->value) }}
             </td>
         </tr>
     </table>

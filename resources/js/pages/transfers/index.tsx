@@ -143,12 +143,14 @@ export default function TransferIndex({ transfers, branches, filters, isSuperAdm
             <Head title="Transfer" />
             <div className="flex flex-col gap-6 p-4">
                 <PageHeader title="Transfer Stok" description="Kelola transfer stok antar cabang">
-                    <Button asChild>
-                        <Link href="/transfers/create">
-                            <Plus className="mr-2 h-4 w-4" />
-                            Buat Transfer
-                        </Link>
-                    </Button>
+                    {!isSuperAdmin && (
+                        <Button asChild>
+                            <Link href="/transfers/create">
+                                <Plus className="mr-2 h-4 w-4" />
+                                Buat Transfer
+                            </Link>
+                        </Button>
+                    )}
                 </PageHeader>
 
                 <FilterBar

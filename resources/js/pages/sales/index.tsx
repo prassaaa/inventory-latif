@@ -122,7 +122,9 @@ export default function SaleIndex({ sales, branches, filters, isSuperAdmin }: Pr
             <Head title="Penjualan" />
             <div className="flex flex-col gap-6 p-4">
                 <PageHeader title="Penjualan" description="Kelola transaksi penjualan">
-                    <Button asChild><Link href="/sales/create"><Plus className="mr-2 h-4 w-4" />Buat Penjualan</Link></Button>
+                    {!isSuperAdmin && (
+                        <Button asChild><Link href="/sales/create"><Plus className="mr-2 h-4 w-4" />Buat Penjualan</Link></Button>
+                    )}
                 </PageHeader>
 
                 <FilterBar

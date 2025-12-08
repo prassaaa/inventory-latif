@@ -308,7 +308,8 @@ class TransferController extends Controller
         $pdf = app('dompdf.wrapper');
         $pdf->loadView('pdf.delivery-note', compact('transfer'));
 
-        return $pdf->stream("surat-jalan-{$transfer->delivery_note_number}.pdf");
+        $filename = str_replace(['/', '\\'], '-', $transfer->delivery_note_number);
+        return $pdf->stream("surat-jalan-{$filename}.pdf");
     }
 
     public function destroy(Transfer $transfer): RedirectResponse
