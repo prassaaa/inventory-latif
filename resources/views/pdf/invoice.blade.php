@@ -44,7 +44,7 @@
             <td style="border: none; width: 50%; vertical-align: top;">
                 <strong>Pelanggan:</strong> {{ $sale->customer_name ?? '-' }}<br>
                 <strong>Telepon:</strong> {{ $sale->customer_phone ?? '-' }}<br>
-                <strong>Pembayaran:</strong> {{ ucfirst($sale->payment_method) }}
+                <strong>Pembayaran:</strong> {{ $sale->payment_method->label() }}
             </td>
         </tr>
     </table>

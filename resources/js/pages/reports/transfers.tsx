@@ -56,7 +56,7 @@ export default function TransfersReport({ transfers, summaryByStatus, branches, 
 
     const handleExport = () => {
         const params = new URLSearchParams(Object.fromEntries(Object.entries({ branch_id: branchId, status, start_date: startDate, end_date: endDate }).filter(([, v]) => v)));
-        window.open(`/reports/transfers/export?${params.toString()}`, '_blank');
+        window.open(`/reports/export/transfers?${params.toString()}`, '_blank');
     };
 
     const columns: ColumnDef<TransferWithRelations>[] = [

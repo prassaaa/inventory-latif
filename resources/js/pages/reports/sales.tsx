@@ -47,7 +47,7 @@ export default function SalesReport({ summary, dailySales, salesByBranch, branch
 
     const handleExport = () => {
         const params = new URLSearchParams(Object.fromEntries(Object.entries({ branch_id: branchId, start_date: startDate, end_date: endDate }).filter(([, v]) => v)));
-        window.open(`/reports/sales/export?${params.toString()}`, '_blank');
+        window.open(`/reports/export/sales?${params.toString()}`, '_blank');
     };
 
     const branchOptions = branches.map((b) => ({ label: `${b.name} (${b.code})`, value: String(b.id) }));

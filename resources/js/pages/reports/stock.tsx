@@ -49,7 +49,7 @@ export default function StockReport({ stocks, summary, stockByCategory, branches
 
     const handleExport = () => {
         const params = branchId ? `?branch_id=${branchId}` : '';
-        window.open(`/reports/stock/export${params}`, '_blank');
+        window.open(`/reports/export/stock${params}`, '_blank');
     };
 
     const columns: ColumnDef<StockWithRelations>[] = [

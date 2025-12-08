@@ -133,7 +133,7 @@ class ReportService
             ->select('status', DB::raw('COUNT(*) as count'))
             ->groupBy('status')
             ->get()
-            ->pluck('count', 'status');
+            ->map(fn($item) => ['status' => $item->status->value, 'count' => $item->count]);
     }
 
     /**

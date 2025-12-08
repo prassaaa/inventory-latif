@@ -22,7 +22,9 @@ class ReportController extends Controller
     {
         $user = Auth::user();
         $isSuperAdmin = $user->isSuperAdmin();
-        $branchId = $isSuperAdmin ? $request->branch_id : $user->branch_id;
+        $branchId = $isSuperAdmin
+            ? ($request->branch_id && $request->branch_id !== 'all' ? (int) $request->branch_id : null)
+            : $user->branch_id;
 
         $summary = $this->reportService->getSalesSummary(
             $branchId,
@@ -56,7 +58,9 @@ class ReportController extends Controller
     {
         $user = Auth::user();
         $isSuperAdmin = $user->isSuperAdmin();
-        $branchId = $isSuperAdmin ? $request->branch_id : $user->branch_id;
+        $branchId = $isSuperAdmin
+            ? ($request->branch_id && $request->branch_id !== 'all' ? (int) $request->branch_id : null)
+            : $user->branch_id;
 
         $query = BranchStock::query()
             ->with(['branch:id,name,code', 'product:id,name,sku,price,category_id', 'product.category:id,name'])
@@ -83,7 +87,9 @@ class ReportController extends Controller
     {
         $user = Auth::user();
         $isSuperAdmin = $user->isSuperAdmin();
-        $branchId = $isSuperAdmin ? $request->branch_id : $user->branch_id;
+        $branchId = $isSuperAdmin
+            ? ($request->branch_id && $request->branch_id !== 'all' ? (int) $request->branch_id : null)
+            : $user->branch_id;
 
         $query = Transfer::query()
             ->with(['fromBranch:id,name,code', 'toBranch:id,name,code']);
@@ -100,13 +106,11 @@ class ReportController extends Controller
             });
         }
 
-        $query->when($request->status, fn($q, $status) => $q->where('status', $status))
+        $query->when($request->status && $request->status !== 'all', fn($q, $status) => $q->where('status', $status))
             ->when($request->start_date, fn($q, $date) => $q->whereDate('created_at', '>=', $date))
             ->when($request->end_date, fn($q, $date) => $q->whereDate('created_at', '<=', $date));
 
-        $summaryByStatus = $this->reportService->getTransferSummaryByStatus(
-            $isSuperAdmin ? null : $user->branch_id
-        );
+        $summaryByStatus = $this->reportService->getTransferSummaryByStatus($branchId);
 
         $transfers = $query->latest()->paginate(15)->withQueryString();
         $branches = $isSuperAdmin ? Branch::active()->get(['id', 'name', 'code']) : [];
@@ -124,7 +128,9 @@ class ReportController extends Controller
     {
         $user = Auth::user();
         $isSuperAdmin = $user->isSuperAdmin();
-        $branchId = $isSuperAdmin ? $request->branch_id : $user->branch_id;
+        $branchId = $isSuperAdmin
+            ? ($request->branch_id && $request->branch_id !== 'all' ? (int) $request->branch_id : null)
+            : $user->branch_id;
 
         $topProducts = $this->reportService->getTopSellingProducts(
             $branchId,
@@ -145,7 +151,9 @@ class ReportController extends Controller
     public function exportSales(Request $request)
     {
         $user = Auth::user();
-        $branchId = $user->isSuperAdmin() ? $request->branch_id : $user->branch_id;
+        $branchId = $user->isSuperAdmin()
+            ? ($request->branch_id && $request->branch_id !== 'all' ? (int) $request->branch_id : null)
+            : $user->branch_id;
 
         return new \App\Exports\SalesExport(
             $branchId,
@@ -157,7 +165,9 @@ class ReportController extends Controller
     public function exportStock(Request $request)
     {
         $user = Auth::user();
-        $branchId = $user->isSuperAdmin() ? $request->branch_id : $user->branch_id;
+        $branchId = $user->isSuperAdmin()
+            ? ($request->branch_id && $request->branch_id !== 'all' ? (int) $request->branch_id : null)
+            : $user->branch_id;
 
         return new \App\Exports\StocksExport($branchId);
     }
@@ -165,7 +175,9 @@ class ReportController extends Controller
     public function exportTransfers(Request $request)
     {
         $user = Auth::user();
-        $branchId = $user->isSuperAdmin() ? $request->branch_id : $user->branch_id;
+        $branchId = $user->isSuperAdmin()
+            ? ($request->branch_id && $request->branch_id !== 'all' ? (int) $request->branch_id : null)
+            : $user->branch_id;
 
         return new \App\Exports\TransfersExport(
             $branchId,

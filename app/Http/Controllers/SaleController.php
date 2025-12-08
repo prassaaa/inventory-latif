@@ -164,7 +164,8 @@ class SaleController extends Controller
         $pdf = app('dompdf.wrapper');
         $pdf->loadView('pdf.invoice', compact('sale'));
 
-        return $pdf->stream("invoice-{$sale->invoice_number}.pdf");
+        $filename = 'invoice-' . str_replace(['/', '\\'], '-', $sale->invoice_number) . '.pdf';
+        return $pdf->stream($filename);
     }
 
     public function destroy(Sale $sale): RedirectResponse
