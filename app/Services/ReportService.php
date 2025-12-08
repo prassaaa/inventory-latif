@@ -22,10 +22,10 @@ class ReportService
             ->when($endDate, fn($q) => $q->whereDate('sale_date', '<=', $endDate));
 
         return [
-            'total_sales' => (clone $query)->sum('grand_total'),
-            'total_transactions' => (clone $query)->count(),
-            'total_discount' => (clone $query)->sum('discount'),
-            'average_transaction' => (clone $query)->avg('grand_total') ?? 0,
+            'total_sales' => (float) ((clone $query)->sum('grand_total') ?? 0),
+            'total_transactions' => (int) (clone $query)->count(),
+            'total_discount' => (float) ((clone $query)->sum('discount') ?? 0),
+            'average_sale' => (float) ((clone $query)->avg('grand_total') ?? 0),
         ];
     }
 
@@ -87,10 +87,10 @@ class ReportService
             ->get();
 
         return [
-            'total_items' => $stocks->sum('quantity'),
-            'total_value' => $stocks->sum(fn($stock) => $stock->quantity * $stock->product->price),
-            'low_stock_count' => $stocks->filter(fn($stock) => $stock->isLowStock())->count(),
-            'total_products' => $stocks->count(),
+            'total_items' => (int) $stocks->count(),
+            'total_quantity' => (int) $stocks->sum('quantity'),
+            'total_value' => (float) $stocks->sum(fn($stock) => $stock->quantity * $stock->product->price),
+            'low_stock_count' => (int) $stocks->filter(fn($stock) => $stock->isLowStock())->count(),
         ];
     }
 
