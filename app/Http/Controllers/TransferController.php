@@ -66,19 +66,23 @@ class TransferController extends Controller
     public function create(): Response
     {
         $user = Auth::user();
+        $userBranch = $user->branch;
+        
+        // All other active branches (can be source or destination)
         $branches = Branch::active()->where('id', '!=', $user->branch_id)->get(['id', 'name', 'code']);
         $products = Product::active()->get(['id', 'name', 'sku']);
 
-        // Get current stock for user's branch
-        $branchStocks = BranchStock::where('branch_id', $user->branch_id)
-            ->with('product:id,name,sku')
-            ->get();
+        // Get stocks for all branches (for dynamic loading)
+        $allBranchStocks = BranchStock::with('product:id,name,sku')
+            ->whereIn('branch_id', $branches->pluck('id'))
+            ->get()
+            ->groupBy('branch_id');
 
         return Inertia::render('transfers/create', [
             'branches' => $branches,
             'products' => $products,
-            'branchStocks' => $branchStocks,
-            'fromBranch' => $user->branch,
+            'allBranchStocks' => $allBranchStocks,
+            'userBranch' => $userBranch,
         ]);
     }
 
@@ -86,13 +90,18 @@ class TransferController extends Controller
     {
         $user = Auth::user();
         $validated = $request->validated();
-        $fromBranch = $user->branch;
+        
+        // Determine from_branch and to_branch
+        $fromBranchId = $validated['from_branch_id'];
+        $toBranchId = $validated['to_branch_id'] ?? $user->branch_id;
+        
+        $fromBranch = Branch::find($fromBranchId);
 
-        DB::transaction(function () use ($validated, $user, $fromBranch) {
+        DB::transaction(function () use ($validated, $user, $fromBranch, $fromBranchId, $toBranchId) {
             $transfer = Transfer::create([
                 'transfer_number' => Transfer::generateTransferNumber($fromBranch->code),
-                'from_branch_id' => $fromBranch->id,
-                'to_branch_id' => $validated['to_branch_id'],
+                'from_branch_id' => $fromBranchId,
+                'to_branch_id' => $toBranchId,
                 'status' => TransferStatus::PENDING,
                 'requested_by' => $user->id,
                 'requested_at' => now(),

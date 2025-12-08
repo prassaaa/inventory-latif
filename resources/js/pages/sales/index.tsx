@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import type { Branch, BreadcrumbItem, PaginatedData, Sale, User } from '@/types';
@@ -33,6 +34,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function SaleIndex({ sales, branches, filters, isSuperAdmin }: Props) {
+    const { can } = usePermissions();
     const [search, setSearch] = useState(filters.search ?? '');
     const [branchId, setBranchId] = useState(filters.branch_id ?? '');
     const [startDate, setStartDate] = useState(filters.start_date ?? '');
@@ -104,7 +106,7 @@ export default function SaleIndex({ sales, branches, filters, isSuperAdmin }: Pr
                     <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild><Link href={`/sales/${row.original.id}`}><Eye className="mr-2 h-4 w-4" />Lihat Detail</Link></DropdownMenuItem>
                         <DropdownMenuItem asChild><a href={`/sales/${row.original.id}/invoice`} target="_blank"><FileText className="mr-2 h-4 w-4" />Cetak Invoice</a></DropdownMenuItem>
-                        {isToday(row.original.sale_date) && (
+                        {isSuperAdmin && isToday(row.original.sale_date) && (
                             <DropdownMenuItem className="text-red-600" onClick={() => setDeleteDialog({ open: true, sale: row.original })}>
                                 <Trash2 className="mr-2 h-4 w-4" />Hapus
                             </DropdownMenuItem>
@@ -122,7 +124,7 @@ export default function SaleIndex({ sales, branches, filters, isSuperAdmin }: Pr
             <Head title="Penjualan" />
             <div className="flex flex-col gap-6 p-4">
                 <PageHeader title="Penjualan" description="Kelola transaksi penjualan">
-                    {!isSuperAdmin && (
+                    {can('create_sale') && (
                         <Button asChild><Link href="/sales/create"><Plus className="mr-2 h-4 w-4" />Buat Penjualan</Link></Button>
                     )}
                 </PageHeader>

@@ -9,6 +9,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
 import type { Branch, BreadcrumbItem, PaginatedData } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
@@ -35,6 +36,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function BranchIndex({ branches, filters }: Props) {
+    const { can } = usePermissions();
     const [search, setSearch] = useState(filters.search ?? '');
     const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; branch: BranchWithCounts | null }>({
         open: false,
@@ -109,19 +111,23 @@ export default function BranchIndex({ branches, filters }: Props) {
                                 Lihat
                             </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                            <Link href={`/branches/${row.original.id}/edit`}>
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Edit
-                            </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                            className="text-red-600"
-                            onClick={() => setDeleteDialog({ open: true, branch: row.original })}
-                        >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Hapus
-                        </DropdownMenuItem>
+                        {can('edit_branch') && (
+                            <DropdownMenuItem asChild>
+                                <Link href={`/branches/${row.original.id}/edit`}>
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Edit
+                                </Link>
+                            </DropdownMenuItem>
+                        )}
+                        {can('delete_branch') && (
+                            <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => setDeleteDialog({ open: true, branch: row.original })}
+                            >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Hapus
+                            </DropdownMenuItem>
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenu>
             ),
@@ -135,7 +141,7 @@ export default function BranchIndex({ branches, filters }: Props) {
                 <PageHeader
                     title="Cabang"
                     description="Kelola data cabang toko"
-                    action={{ label: 'Tambah Cabang', href: '/branches/create' }}
+                    action={can('create_branch') ? { label: 'Tambah Cabang', href: '/branches/create' } : undefined}
                 />
 
                 <FilterBar

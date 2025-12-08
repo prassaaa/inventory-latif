@@ -4,6 +4,7 @@ import { PageHeader } from '@/components/page-header';
 import { LowStockBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency, formatNumber } from '@/lib/utils';
 import type { Branch, BranchStock, BreadcrumbItem, PaginatedData, Product } from '@/types';
@@ -30,6 +31,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function StockIndex({ stocks, branches, filters, isSuperAdmin }: Props) {
+    const { can } = usePermissions();
     const [search, setSearch] = useState(filters.search ?? '');
     const [branchId, setBranchId] = useState(filters.branch_id ?? '');
     const [lowStock, setLowStock] = useState(filters.low_stock ?? false);
@@ -117,12 +119,14 @@ export default function StockIndex({ stocks, branches, filters, isSuperAdmin }: 
                                 Riwayat
                             </Link>
                         </Button>
-                        <Button asChild>
-                            <Link href="/stocks/adjust">
-                                <Plus className="mr-2 h-4 w-4" />
-                                Adjust Stok
-                            </Link>
-                        </Button>
+                        {can('adjust_stock') && (
+                            <Button asChild>
+                                <Link href="/stocks/adjust">
+                                    <Plus className="mr-2 h-4 w-4" />
+                                    Adjust Stok
+                                </Link>
+                            </Button>
+                        )}
                     </div>
                 </PageHeader>
 

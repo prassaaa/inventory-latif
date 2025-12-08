@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/page-header';
 import { TransferStatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
 import { formatDateTime } from '@/lib/utils';
 import type { Branch, BreadcrumbItem, PaginatedData, Transfer, User } from '@/types';
@@ -34,6 +35,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function TransferIndex({ transfers, branches, filters, isSuperAdmin, statuses }: Props) {
+    const { can } = usePermissions();
     const [branchId, setBranchId] = useState(filters.branch_id ?? '');
     const [status, setStatus] = useState(filters.status ?? '');
     const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; transfer: TransferWithRelations | null }>({
@@ -120,7 +122,7 @@ export default function TransferIndex({ transfers, branches, filters, isSuperAdm
                                 Lihat Detail
                             </Link>
                         </DropdownMenuItem>
-                        {['draft', 'pending'].includes(row.original.status) && (
+                        {['draft', 'pending'].includes(row.original.status) && can('create_transfer') && (
                             <DropdownMenuItem
                                 className="text-red-600"
                                 onClick={() => setDeleteDialog({ open: true, transfer: row.original })}
@@ -143,7 +145,7 @@ export default function TransferIndex({ transfers, branches, filters, isSuperAdm
             <Head title="Transfer" />
             <div className="flex flex-col gap-6 p-4">
                 <PageHeader title="Transfer Stok" description="Kelola transfer stok antar cabang">
-                    {!isSuperAdmin && (
+                    {can('create_transfer') && (
                         <Button asChild>
                             <Link href="/transfers/create">
                                 <Plus className="mr-2 h-4 w-4" />

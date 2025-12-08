@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/page-header';
 import { ActiveBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, Category, PaginatedData } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
@@ -27,6 +28,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function CategoryIndex({ categories, filters }: Props) {
+    const { can } = usePermissions();
     const [search, setSearch] = useState(filters.search ?? '');
     const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; category: CategoryWithCount | null }>({
         open: false,
@@ -94,19 +96,23 @@ export default function CategoryIndex({ categories, filters }: Props) {
                                 Lihat
                             </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                            <Link href={`/categories/${row.original.id}/edit`}>
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Edit
-                            </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                            className="text-red-600"
-                            onClick={() => setDeleteDialog({ open: true, category: row.original })}
-                        >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Hapus
-                        </DropdownMenuItem>
+                        {can('edit_category') && (
+                            <DropdownMenuItem asChild>
+                                <Link href={`/categories/${row.original.id}/edit`}>
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Edit
+                                </Link>
+                            </DropdownMenuItem>
+                        )}
+                        {can('delete_category') && (
+                            <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => setDeleteDialog({ open: true, category: row.original })}
+                            >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Hapus
+                            </DropdownMenuItem>
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenu>
             ),
@@ -120,7 +126,7 @@ export default function CategoryIndex({ categories, filters }: Props) {
                 <PageHeader
                     title="Kategori"
                     description="Kelola kategori produk"
-                    action={{ label: 'Tambah Kategori', href: '/categories/create' }}
+                    action={can('create_category') ? { label: 'Tambah Kategori', href: '/categories/create' } : undefined}
                 />
 
                 <FilterBar

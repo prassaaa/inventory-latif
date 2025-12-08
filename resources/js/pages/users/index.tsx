@@ -6,6 +6,7 @@ import { ActiveBadge } from '@/components/status-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
 import type { Branch, BreadcrumbItem, PaginatedData, Role, User } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
@@ -31,6 +32,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function UserIndex({ users, branches, filters }: Props) {
+    const { can } = usePermissions();
     const [search, setSearch] = useState(filters.search ?? '');
     const [branchId, setBranchId] = useState(filters.branch_id ?? '');
     const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; user: UserWithRelations | null }>({
@@ -117,19 +119,23 @@ export default function UserIndex({ users, branches, filters }: Props) {
                                 Lihat
                             </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                            <Link href={`/users/${row.original.id}/edit`}>
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Edit
-                            </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                            className="text-red-600"
-                            onClick={() => setDeleteDialog({ open: true, user: row.original })}
-                        >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Hapus
-                        </DropdownMenuItem>
+                        {can('edit_user') && (
+                            <DropdownMenuItem asChild>
+                                <Link href={`/users/${row.original.id}/edit`}>
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Edit
+                                </Link>
+                            </DropdownMenuItem>
+                        )}
+                        {can('delete_user') && (
+                            <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => setDeleteDialog({ open: true, user: row.original })}
+                            >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Hapus
+                            </DropdownMenuItem>
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenu>
             ),
@@ -142,7 +148,7 @@ export default function UserIndex({ users, branches, filters }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Pengguna" />
             <div className="flex flex-col gap-6 p-4">
-                <PageHeader title="Pengguna" description="Kelola data pengguna" action={{ label: 'Tambah Pengguna', href: '/users/create' }} />
+                <PageHeader title="Pengguna" description="Kelola data pengguna" action={can('create_user') ? { label: 'Tambah Pengguna', href: '/users/create' } : undefined} />
 
                 <FilterBar
                     searchPlaceholder="Cari pengguna..."

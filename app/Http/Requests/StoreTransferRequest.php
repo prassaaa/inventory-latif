@@ -14,7 +14,8 @@ class StoreTransferRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'to_branch_id' => 'required|exists:branches,id|different:from_branch_id',
+            'from_branch_id' => 'required|exists:branches,id',
+            'to_branch_id' => 'nullable|exists:branches,id|different:from_branch_id',
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
@@ -25,7 +26,8 @@ class StoreTransferRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'to_branch_id.required' => 'Cabang tujuan wajib dipilih.',
+            'from_branch_id.required' => 'Cabang asal wajib dipilih.',
+            'from_branch_id.exists' => 'Cabang asal tidak valid.',
             'to_branch_id.exists' => 'Cabang tujuan tidak valid.',
             'to_branch_id.different' => 'Cabang tujuan harus berbeda dengan cabang asal.',
             'items.required' => 'Minimal harus ada 1 item.',

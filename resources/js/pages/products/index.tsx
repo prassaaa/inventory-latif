@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/page-header';
 import { ActiveBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/utils';
 import type { BreadcrumbItem, Category, PaginatedData, Product } from '@/types';
@@ -29,6 +30,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function ProductIndex({ products, categories, filters }: Props) {
+    const { can } = usePermissions();
     const [search, setSearch] = useState(filters.search ?? '');
     const [categoryId, setCategoryId] = useState(filters.category_id ?? '');
     const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; product: ProductWithCategory | null }>({
@@ -122,19 +124,23 @@ export default function ProductIndex({ products, categories, filters }: Props) {
                                 Lihat
                             </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                            <Link href={`/products/${row.original.id}/edit`}>
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Edit
-                            </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                            className="text-red-600"
-                            onClick={() => setDeleteDialog({ open: true, product: row.original })}
-                        >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Hapus
-                        </DropdownMenuItem>
+                        {can('edit_product') && (
+                            <DropdownMenuItem asChild>
+                                <Link href={`/products/${row.original.id}/edit`}>
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Edit
+                                </Link>
+                            </DropdownMenuItem>
+                        )}
+                        {can('delete_product') && (
+                            <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => setDeleteDialog({ open: true, product: row.original })}
+                            >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Hapus
+                            </DropdownMenuItem>
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenu>
             ),
@@ -147,7 +153,7 @@ export default function ProductIndex({ products, categories, filters }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Produk" />
             <div className="flex flex-col gap-6 p-4">
-                <PageHeader title="Produk" description="Kelola data produk" action={{ label: 'Tambah Produk', href: '/products/create' }} />
+                <PageHeader title="Produk" description="Kelola data produk" action={can('create_product') ? { label: 'Tambah Produk', href: '/products/create' } : undefined} />
 
                 <FilterBar
                     searchPlaceholder="Cari produk..."
