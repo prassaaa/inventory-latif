@@ -45,7 +45,12 @@ class ReportService
             )
             ->groupBy('date')
             ->orderBy('date')
-            ->get();
+            ->get()
+            ->map(fn($item) => [
+                'date' => $item->date,
+                'total' => (float) $item->total,
+                'count' => (int) $item->count,
+            ]);
     }
 
     /**
@@ -63,7 +68,12 @@ class ReportService
             )
             ->groupBy('branch_id')
             ->with('branch:id,name,code')
-            ->get();
+            ->get()
+            ->map(fn($item) => [
+                'branch_name' => $item->branch?->name ?? 'Unknown',
+                'total' => (float) $item->total,
+                'count' => (int) $item->count,
+            ]);
     }
 
     /**
@@ -96,10 +106,10 @@ class ReportService
             ->groupBy('product.category.name')
             ->map(function ($items, $category) {
                 return [
-                    'category' => $category ?: 'Tanpa Kategori',
-                    'quantity' => $items->sum('quantity'),
-                    'value' => $items->sum(fn($item) => $item->quantity * $item->product->price),
-                    'products_count' => $items->count(),
+                    'category_name' => $category ?: 'Tanpa Kategori',
+                    'total_quantity' => (int) $items->sum('quantity'),
+                    'total_value' => (float) $items->sum(fn($item) => $item->quantity * $item->product->price),
+                    'products_count' => (int) $items->count(),
                 ];
             })
             ->values();
