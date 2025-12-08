@@ -13,7 +13,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Head, router } from '@inertiajs/react';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { useFieldArray, useForm } from 'react-hook-form';
+import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 
 const saleSchema = z.object({
@@ -52,10 +52,15 @@ export default function SaleCreate({ branchStocks, branch, paymentMethods }: Pro
     });
 
     const { fields, append, remove } = useFieldArray({ control: form.control, name: 'items' });
-    const watchItems = form.watch('items');
-    const watchDiscount = form.watch('discount');
 
-    const subtotal = useMemo(() => watchItems.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0), [watchItems]);
+    // Use useWatch for reactive updates
+    const watchItems = useWatch({ control: form.control, name: 'items' });
+    const watchDiscount = useWatch({ control: form.control, name: 'discount' });
+
+    const subtotal = useMemo(() => {
+        if (!watchItems) return 0;
+        return watchItems.reduce((sum, item) => sum + ((item?.quantity || 0) * (item?.unit_price || 0)), 0);
+    }, [watchItems]);
     const grandTotal = useMemo(() => subtotal - (watchDiscount || 0), [subtotal, watchDiscount]);
 
     const getStock = (productId: string) => branchStocks.find((s) => String(s.product_id) === productId);
@@ -66,7 +71,7 @@ export default function SaleCreate({ branchStocks, branch, paymentMethods }: Pro
         setSelectedProducts((prev) => new Set(prev).add(productId));
         form.setValue(`items.${index}.product_id`, productId);
         const stock = getStock(productId);
-        if (stock) form.setValue(`items.${index}.unit_price`, stock.product.price);
+        if (stock) form.setValue(`items.${index}.unit_price`, Number(stock.product.price));
     };
 
     const handleRemoveItem = (index: number) => {
@@ -77,7 +82,18 @@ export default function SaleCreate({ branchStocks, branch, paymentMethods }: Pro
 
     const onSubmit = (data: SaleFormValues) => router.post('/sales', data);
 
-    const availableProducts = branchStocks.filter((s) => !selectedProducts.has(String(s.product_id)) || fields.some((f) => f.product_id === String(s.product_id)));
+    // Get available products for a specific row (exclude already selected, but include current row's product)
+    const getAvailableProductsForRow = (currentProductId: string) => {
+        return branchStocks.filter((s) =>
+            !selectedProducts.has(String(s.product_id)) || String(s.product_id) === currentProductId
+        );
+    };
+
+    // Get product label for display
+    const getProductLabel = (productId: string) => {
+        const stock = branchStocks.find(s => String(s.product_id) === productId);
+        return stock ? `${stock.product.sku} - ${stock.product.name}` : '';
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -109,24 +125,59 @@ export default function SaleCreate({ branchStocks, branch, paymentMethods }: Pro
                                         </TableHeader>
                                         <TableBody>
                                             {fields.map((field, index) => {
+                                                const productId = form.getValues(`items.${index}.product_id`);
+                                                const stock = getStock(productId);
+                                                const rowProducts = getAvailableProductsForRow(productId);
                                                 // eslint-disable-next-line react-hooks/incompatible-library -- React Compiler auto-skips incompatible hooks
-                                                const stock = getStock(form.watch(`items.${index}.product_id`));
-                                                const itemSubtotal = (form.watch(`items.${index}.quantity`) || 0) * (form.watch(`items.${index}.unit_price`) || 0);
+                                                const quantity = form.watch(`items.${index}.quantity`) || 0;
+                                                const unitPrice = form.watch(`items.${index}.unit_price`) || 0;
+                                                const itemSubtotal = quantity * unitPrice;
                                                 return (
                                                     <TableRow key={field.id}>
-                                                        <TableCell>
+                                                        <TableCell className="min-w-[200px]">
                                                             <FormField control={form.control} name={`items.${index}.product_id`} render={({ field: f }) => (
                                                                 <Select onValueChange={(v) => handleProductChange(index, v)} value={f.value}>
-                                                                    <SelectTrigger><SelectValue placeholder="Pilih produk" /></SelectTrigger>
+                                                                    <SelectTrigger className="w-full">
+                                                                        <SelectValue placeholder="Pilih produk" className="truncate">
+                                                                            <span className="truncate block">{f.value ? getProductLabel(f.value) : 'Pilih produk'}</span>
+                                                                        </SelectValue>
+                                                                    </SelectTrigger>
                                                                     <SelectContent>
-                                                                        {availableProducts.map((s) => (<SelectItem key={s.product_id} value={String(s.product_id)}>{s.product.sku} - {s.product.name}</SelectItem>))}
+                                                                        {rowProducts.map((s) => (<SelectItem key={s.product_id} value={String(s.product_id)}>{s.product.sku} - {s.product.name}</SelectItem>))}
                                                                     </SelectContent>
                                                                 </Select>
                                                             )} />
                                                         </TableCell>
                                                         <TableCell className="text-center">{stock?.quantity ?? 0}</TableCell>
-                                                        <TableCell><FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => (<Input type="number" min={1} max={stock?.quantity ?? 1} {...f} />)} /></TableCell>
-                                                        <TableCell><FormField control={form.control} name={`items.${index}.unit_price`} render={({ field: f }) => (<Input type="number" min={0} {...f} />)} /></TableCell>
+                                                        <TableCell className="min-w-[80px]">
+                                                            <FormField control={form.control} name={`items.${index}.quantity`} render={({ field: f }) => (
+                                                                <Input
+                                                                    type="number"
+                                                                    min={1}
+                                                                    max={stock?.quantity ?? 1}
+                                                                    value={f.value}
+                                                                    onChange={(e) => f.onChange(e.target.value === '' ? 1 : Number(e.target.value))}
+                                                                    onBlur={f.onBlur}
+                                                                    name={f.name}
+                                                                    ref={f.ref}
+                                                                    className="w-full"
+                                                                />
+                                                            )} />
+                                                        </TableCell>
+                                                        <TableCell className="min-w-[100px]">
+                                                            <FormField control={form.control} name={`items.${index}.unit_price`} render={({ field: f }) => (
+                                                                <Input
+                                                                    type="number"
+                                                                    min={0}
+                                                                    value={f.value}
+                                                                    onChange={(e) => f.onChange(e.target.value === '' ? 0 : Number(e.target.value))}
+                                                                    onBlur={f.onBlur}
+                                                                    name={f.name}
+                                                                    ref={f.ref}
+                                                                    className="w-full"
+                                                                />
+                                                            )} />
+                                                        </TableCell>
                                                         <TableCell className="text-right font-medium">{formatCurrency(itemSubtotal)}</TableCell>
                                                         <TableCell><Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveItem(index)} disabled={fields.length === 1}><Trash2 className="h-4 w-4 text-red-500" /></Button></TableCell>
                                                     </TableRow>
@@ -151,7 +202,23 @@ export default function SaleCreate({ branchStocks, branch, paymentMethods }: Pro
                                     <CardHeader><CardTitle>Pembayaran</CardTitle></CardHeader>
                                     <CardContent className="space-y-4">
                                         <FormField control={form.control} name="payment_method" render={({ field }) => (<FormItem><FormLabel>Metode *</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent>{paymentMethods.map((m) => (<SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>)} />
-                                        <FormField control={form.control} name="discount" render={({ field }) => (<FormItem><FormLabel>Diskon</FormLabel><FormControl><Input type="number" min={0} {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                        <FormField control={form.control} name="discount" render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Diskon</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        type="number"
+                                                        min={0}
+                                                        value={field.value}
+                                                        onChange={(e) => field.onChange(e.target.value === '' ? 0 : Number(e.target.value))}
+                                                        onBlur={field.onBlur}
+                                                        name={field.name}
+                                                        ref={field.ref}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )} />
                                         <FormField control={form.control} name="notes" render={({ field }) => (<FormItem><FormLabel>Catatan</FormLabel><FormControl><Textarea placeholder="Catatan..." {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
                                         <div className="border-t pt-4 space-y-2">
                                             <div className="flex justify-between"><span>Subtotal</span><span>{formatCurrency(subtotal)}</span></div>

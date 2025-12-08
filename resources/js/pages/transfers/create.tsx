@@ -177,12 +177,12 @@ export default function TransferCreate({ branches, products, allBranchStocks, us
                                                         const rowProducts = getAvailableProductsForRow(productId);
                                                         return (
                                                             <TableRow key={field.id}>
-                                                                <TableCell>
+                                                                <TableCell className="min-w-[200px]">
                                                                     <FormField control={form.control} name={`items.${index}.product_id`} render={({ field: f }) => (
                                                                         <Select onValueChange={(v) => handleProductChange(index, v)} value={f.value}>
-                                                                            <SelectTrigger>
-                                                                                <SelectValue placeholder="Pilih produk">
-                                                                                    {f.value ? getProductLabel(f.value) : 'Pilih produk'}
+                                                                            <SelectTrigger className="w-full">
+                                                                                <SelectValue placeholder="Pilih produk" className="truncate">
+                                                                                    <span className="truncate block">{f.value ? getProductLabel(f.value) : 'Pilih produk'}</span>
                                                                                 </SelectValue>
                                                                             </SelectTrigger>
                                                                             <SelectContent>
