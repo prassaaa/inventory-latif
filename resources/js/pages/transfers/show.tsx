@@ -24,9 +24,11 @@ interface TransferWithRelations extends Omit<Transfer, 'from_branch' | 'to_branc
 
 interface Props {
     transfer: TransferWithRelations;
+    userBranch: Branch | null;
+    isSuperAdmin: boolean;
 }
 
-export default function TransferShow({ transfer }: Props) {
+export default function TransferShow({ transfer, userBranch, isSuperAdmin }: Props) {
     const { can } = usePermissions();
     const [showApproveDialog, setShowApproveDialog] = useState(false);
     const [showRejectDialog, setShowRejectDialog] = useState(false);
@@ -69,16 +71,19 @@ export default function TransferShow({ transfer }: Props) {
             <div className="flex flex-col gap-6 p-4">
                 <PageHeader title={transfer.transfer_number} description="Detail transfer stok">
                     <div className="flex gap-2">
-                        {transfer.status === 'pending' && can('approve_transfer') && (
+                        {/* Super Admin: Approve/Reject when pending */}
+                        {transfer.status === 'pending' && isSuperAdmin && can('approve_transfer') && (
                             <>
                                 <Button onClick={() => setShowApproveDialog(true)}><Check className="mr-2 h-4 w-4" />Approve</Button>
                                 <Button variant="destructive" onClick={() => setShowRejectDialog(true)}><X className="mr-2 h-4 w-4" />Reject</Button>
                             </>
                         )}
-                        {transfer.status === 'approved' && can('send_transfer') && (
+                        {/* Admin Cabang Pengirim (from_branch): Kirim when approved */}
+                        {transfer.status === 'approved' && can('send_transfer') && userBranch?.id === transfer.from_branch.id && (
                             <Button onClick={() => setShowSendDialog(true)}><Send className="mr-2 h-4 w-4" />Kirim</Button>
                         )}
-                        {transfer.status === 'sent' && can('receive_transfer') && (
+                        {/* Admin Cabang Penerima (to_branch): Terima when sent */}
+                        {transfer.status === 'sent' && can('receive_transfer') && userBranch?.id === transfer.to_branch.id && (
                             <Button onClick={() => setShowReceiveDialog(true)}><Check className="mr-2 h-4 w-4" />Terima</Button>
                         )}
                         {transfer.delivery_note_number && (

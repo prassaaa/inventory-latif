@@ -131,8 +131,12 @@ class TransferController extends Controller
             'items.product',
         ]);
 
+        $user = Auth::user();
+
         return Inertia::render('transfers/show', [
             'transfer' => $transfer,
+            'userBranch' => $user->branch,
+            'isSuperAdmin' => $user->hasRole('super_admin'),
         ]);
     }
 
