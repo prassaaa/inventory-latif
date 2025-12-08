@@ -144,7 +144,7 @@ class StockController extends Controller
             ]);
         });
 
-        return back()->with('success', 'Stok berhasil disesuaikan.');
+        return redirect()->route('stocks.index')->with('success', 'Stok berhasil disesuaikan.');
     }
 
     public function adjustForm(): Response

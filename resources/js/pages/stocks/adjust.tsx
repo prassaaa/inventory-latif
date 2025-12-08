@@ -45,9 +45,13 @@ export default function StockAdjust({ branches, products }: Props) {
     });
 
     const onSubmit = (data: AdjustFormValues) => {
+        console.log('Submitting data:', data);
         router.post('/stocks/adjust', data, {
             onSuccess: () => {
                 form.reset();
+            },
+            onError: (errors) => {
+                console.log('Errors:', errors);
             },
         });
     };
@@ -129,7 +133,15 @@ export default function StockAdjust({ branches, products }: Props) {
                                         <FormItem>
                                             <FormLabel>Jumlah *</FormLabel>
                                             <FormControl>
-                                                <Input type="number" placeholder="0" {...field} />
+                                                <Input
+                                                    type="number"
+                                                    placeholder="0"
+                                                    value={field.value}
+                                                    onChange={(e) => field.onChange(e.target.value === '' ? 0 : Number(e.target.value))}
+                                                    onBlur={field.onBlur}
+                                                    name={field.name}
+                                                    ref={field.ref}
+                                                />
                                             </FormControl>
                                             <FormDescription>
                                                 Positif (+) untuk menambah, negatif (-) untuk mengurangi
