@@ -67,7 +67,7 @@ class TransferController extends Controller
     {
         $user = Auth::user();
         $userBranch = $user->branch;
-        
+
         // All other active branches (can be source or destination)
         $branches = Branch::active()->where('id', '!=', $user->branch_id)->get(['id', 'name', 'code']);
         $products = Product::active()->get(['id', 'name', 'sku']);
@@ -90,11 +90,11 @@ class TransferController extends Controller
     {
         $user = Auth::user();
         $validated = $request->validated();
-        
+
         // Determine from_branch and to_branch
         $fromBranchId = $validated['from_branch_id'];
         $toBranchId = $validated['to_branch_id'] ?? $user->branch_id;
-        
+
         $fromBranch = Branch::find($fromBranchId);
 
         DB::transaction(function () use ($validated, $user, $fromBranch, $fromBranchId, $toBranchId) {
