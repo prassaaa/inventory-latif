@@ -106,11 +106,16 @@ class ReportController extends Controller
             });
         }
 
-        $query->when($request->status && $request->status !== 'all', fn($q, $status) => $q->where('status', $status))
-            ->when($request->start_date, fn($q, $date) => $q->whereDate('created_at', '>=', $date))
-            ->when($request->end_date, fn($q, $date) => $q->whereDate('created_at', '<=', $date));
+        $query->when($request->status && $request->status !== 'all', fn($q) => $q->where('status', $request->status))
+            ->when($request->start_date, fn($q) => $q->whereDate('created_at', '>=', $request->start_date))
+            ->when($request->end_date, fn($q) => $q->whereDate('created_at', '<=', $request->end_date));
 
-        $summaryByStatus = $this->reportService->getTransferSummaryByStatus($branchId);
+        $summaryByStatus = $this->reportService->getTransferSummaryByStatus(
+            $branchId,
+            $request->status,
+            $request->start_date,
+            $request->end_date
+        );
 
         $transfers = $query->latest()->paginate(15)->withQueryString();
         $branches = $isSuperAdmin ? Branch::active()->get(['id', 'name', 'code']) : [];

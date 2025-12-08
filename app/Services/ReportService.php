@@ -121,8 +121,12 @@ class ReportService
     /**
      * Get transfer summary by status
      */
-    public function getTransferSummaryByStatus(?int $branchId = null): Collection
-    {
+    public function getTransferSummaryByStatus(
+        ?int $branchId = null,
+        ?string $status = null,
+        ?string $startDate = null,
+        ?string $endDate = null
+    ): Collection {
         return Transfer::query()
             ->when($branchId, function ($q) use ($branchId) {
                 $q->where(function ($sq) use ($branchId) {
@@ -130,6 +134,9 @@ class ReportService
                         ->orWhere('to_branch_id', $branchId);
                 });
             })
+            ->when($status && $status !== 'all', fn($q) => $q->where('status', $status))
+            ->when($startDate, fn($q) => $q->whereDate('created_at', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('created_at', '<=', $endDate))
             ->select('status', DB::raw('COUNT(*) as count'))
             ->groupBy('status')
             ->get()

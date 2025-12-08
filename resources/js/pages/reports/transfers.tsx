@@ -45,8 +45,13 @@ export default function TransfersReport({ transfers, summaryByStatus, branches, 
     const [endDate, setEndDate] = useState(filters.end_date ?? '');
 
     const applyFilters = (newFilters: Partial<typeof filters>) => {
-        const allFilters = { branch_id: branchId, status, start_date: startDate, end_date: endDate, ...newFilters };
-        router.get('/reports/transfers', Object.fromEntries(Object.entries(allFilters).filter(([, v]) => v)), { preserveState: true, preserveScroll: true });
+        const currentFilters = { 
+            branch_id: newFilters.branch_id !== undefined ? newFilters.branch_id : branchId, 
+            status: newFilters.status !== undefined ? newFilters.status : status, 
+            start_date: newFilters.start_date !== undefined ? newFilters.start_date : startDate, 
+            end_date: newFilters.end_date !== undefined ? newFilters.end_date : endDate 
+        };
+        router.get('/reports/transfers', Object.fromEntries(Object.entries(currentFilters).filter(([, v]) => v)), { preserveState: true, preserveScroll: true });
     };
 
     const handleClearFilters = () => {
