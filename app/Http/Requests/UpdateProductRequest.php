@@ -18,6 +18,7 @@ class UpdateProductRequest extends FormRequest
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             'color' => 'nullable|string|max:50',
+            'size' => 'nullable|string|max:50',
             'price' => 'required|numeric|min:0',
             'image' => 'nullable|image|max:2048',
             'description' => 'nullable|string',

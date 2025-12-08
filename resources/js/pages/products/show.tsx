@@ -51,8 +51,8 @@ export default function ProductShow({ product }: Props) {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {product.image && (
-                                <img src={product.image} alt={product.name} className="w-full rounded-lg object-cover aspect-square" />
+                            {product.image_url && (
+                                <img src={product.image_url} alt={product.name} className="w-full rounded-lg object-cover aspect-square" />
                             )}
                             <div className="flex items-center justify-between">
                                 <span className="text-muted-foreground">Status</span>

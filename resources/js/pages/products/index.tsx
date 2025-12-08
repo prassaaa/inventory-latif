@@ -77,8 +77,8 @@ export default function ProductIndex({ products, categories, filters }: Props) {
             header: 'Nama Produk',
             cell: ({ row }) => (
                 <div className="flex items-center gap-3">
-                    {row.original.image ? (
-                        <img src={row.original.image} alt={row.original.name} className="h-10 w-10 rounded object-cover" />
+                    {row.original.thumbnail_url ? (
+                        <img src={row.original.thumbnail_url} alt={row.original.name} className="h-10 w-10 rounded object-cover" />
                     ) : (
                         <div className="h-10 w-10 rounded bg-muted flex items-center justify-center text-xs text-muted-foreground">
                             No img

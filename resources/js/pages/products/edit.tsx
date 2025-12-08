@@ -41,7 +41,7 @@ export default function ProductEdit({ product, categories }: Props) {
         { title: 'Edit', href: `/products/${product.id}/edit` },
     ];
 
-    const [imagePreview, setImagePreview] = useState<string | null>(product.image || null);
+    const [imagePreview, setImagePreview] = useState<string | null>(product.image_url || null);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -78,7 +78,12 @@ export default function ProductEdit({ product, categories }: Props) {
         formData.append('_method', 'PUT');
         Object.entries(data).forEach(([key, value]) => {
             if (value !== null && value !== undefined) {
-                formData.append(key, String(value));
+                // Convert boolean to "1"/"0" for Laravel
+                if (typeof value === 'boolean') {
+                    formData.append(key, value ? '1' : '0');
+                } else {
+                    formData.append(key, String(value));
+                }
             }
         });
         if (imageFile) formData.append('image', imageFile);
@@ -133,7 +138,17 @@ export default function ProductEdit({ product, categories }: Props) {
                                     <FormField control={form.control} name="price" render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>Harga *</FormLabel>
-                                            <FormControl><Input type="number" placeholder="0" {...field} /></FormControl>
+                                            <FormControl>
+                                                <Input
+                                                    type="number"
+                                                    placeholder="0"
+                                                    value={field.value}
+                                                    onChange={(e) => field.onChange(e.target.value === '' ? 0 : Number(e.target.value))}
+                                                    onBlur={field.onBlur}
+                                                    name={field.name}
+                                                    ref={field.ref}
+                                                />
+                                            </FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )} />

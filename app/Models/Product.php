@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class Product extends Model
 {
@@ -13,11 +14,14 @@ class Product extends Model
         'name',
         'category_id',
         'color',
+        'size',
         'price',
         'image',
         'description',
         'is_active',
     ];
+
+    protected $appends = ['image_url', 'thumbnail_url'];
 
     protected function casts(): array
     {
@@ -25,6 +29,22 @@ class Product extends Model
             'price' => 'decimal:2',
             'is_active' => 'boolean',
         ];
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        if (!$this->image) {
+            return null;
+        }
+        return Storage::disk('public')->url('products/' . $this->image);
+    }
+
+    public function getThumbnailUrlAttribute(): ?string
+    {
+        if (!$this->image) {
+            return null;
+        }
+        return Storage::disk('public')->url('products/thumbnails/' . $this->image);
     }
 
     public function category(): BelongsTo

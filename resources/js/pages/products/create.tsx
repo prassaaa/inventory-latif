@@ -75,7 +75,12 @@ export default function ProductCreate({ categories }: Props) {
         const formData = new FormData();
         Object.entries(data).forEach(([key, value]) => {
             if (value !== null && value !== undefined) {
-                formData.append(key, String(value));
+                // Convert boolean to "1"/"0" for Laravel
+                if (typeof value === 'boolean') {
+                    formData.append(key, value ? '1' : '0');
+                } else {
+                    formData.append(key, String(value));
+                }
             }
         });
         if (imageFile) formData.append('image', imageFile);
@@ -132,7 +137,17 @@ export default function ProductCreate({ categories }: Props) {
                                     <FormField control={form.control} name="price" render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>Harga *</FormLabel>
-                                            <FormControl><Input type="number" placeholder="0" {...field} /></FormControl>
+                                            <FormControl>
+                                                <Input
+                                                    type="number"
+                                                    placeholder="0"
+                                                    value={field.value}
+                                                    onChange={(e) => field.onChange(e.target.value === '' ? 0 : Number(e.target.value))}
+                                                    onBlur={field.onBlur}
+                                                    name={field.name}
+                                                    ref={field.ref}
+                                                />
+                                            </FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )} />

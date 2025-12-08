@@ -110,6 +110,8 @@ export interface Product {
     size: string | null;
     price: number;
     image: string | null;
+    image_url: string | null;
+    thumbnail_url: string | null;
     is_active: boolean;
     branch_stocks?: BranchStock[];
     created_at: string;
