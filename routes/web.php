@@ -15,8 +15,19 @@ use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 Route::get('/', function () {
+    $products = \App\Models\Product::query()
+        ->active()
+        ->with('category:id,name')
+        ->latest()
+        ->take(12)
+        ->get();
+
+    $categories = \App\Models\Category::active()->get(['id', 'name']);
+
     return Inertia::render('welcome', [
         'canRegister' => Features::enabled(Features::registration()),
+        'products' => $products,
+        'categories' => $categories,
     ]);
 })->name('home');
 
