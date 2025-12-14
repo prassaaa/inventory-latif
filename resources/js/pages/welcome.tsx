@@ -13,12 +13,11 @@ interface ProductWithCategory extends Omit<Product, 'category'> {
 }
 
 interface Props {
-    canRegister: boolean;
     products: ProductWithCategory[];
     categories: Category[];
 }
 
-export default function Welcome({ canRegister, products, categories }: Props) {
+export default function Welcome({ products, categories }: Props) {
     const [search, setSearch] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('');
 
@@ -47,14 +46,9 @@ export default function Welcome({ canRegister, products, categories }: Props) {
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            <Button variant="ghost" asChild>
+                            <Button asChild>
                                 <Link href="/login">Masuk</Link>
                             </Button>
-                            {canRegister && (
-                                <Button asChild>
-                                    <Link href="/register">Daftar</Link>
-                                </Button>
-                            )}
                         </div>
                     </div>
                 </header>

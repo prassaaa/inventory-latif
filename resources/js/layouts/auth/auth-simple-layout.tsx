@@ -1,6 +1,8 @@
 import AppLogoIcon from '@/components/app-logo-icon';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { home } from '@/routes';
 import { Link } from '@inertiajs/react';
+import { Store } from 'lucide-react';
 import { type PropsWithChildren } from 'react';
 
 interface AuthLayoutProps {
@@ -15,29 +17,34 @@ export default function AuthSimpleLayout({
     description,
 }: PropsWithChildren<AuthLayoutProps>) {
     return (
-        <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-10">
-            <div className="w-full max-w-sm">
-                <div className="flex flex-col gap-8">
-                    <div className="flex flex-col items-center gap-4">
-                        <Link
-                            href={home()}
-                            className="flex flex-col items-center gap-2 font-medium"
-                        >
-                            <div className="mb-1 flex h-9 w-9 items-center justify-center rounded-md">
-                                <AppLogoIcon className="size-9 fill-current text-[var(--foreground)] dark:text-white" />
-                            </div>
-                            <span className="sr-only">{title}</span>
-                        </Link>
-
-                        <div className="space-y-2 text-center">
-                            <h1 className="text-xl font-medium">{title}</h1>
-                            <p className="text-center text-sm text-muted-foreground">
-                                {description}
-                            </p>
-                        </div>
+        <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/10 flex items-center justify-center p-4">
+            <div className="w-full max-w-md">
+                {/* Logo & Brand */}
+                <Link href={home()} className="flex items-center justify-center gap-3 mb-8">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary shadow-lg">
+                        <Store className="h-7 w-7 text-primary-foreground" />
                     </div>
-                    {children}
-                </div>
+                    <div className="text-left">
+                        <h1 className="text-2xl font-bold">Inventory System</h1>
+                        <p className="text-sm text-muted-foreground">Manajemen Stok Modern</p>
+                    </div>
+                </Link>
+
+                {/* Login Card */}
+                <Card className="shadow-2xl border-2">
+                    <CardHeader className="space-y-1 pb-6">
+                        <CardTitle className="text-2xl font-bold">{title}</CardTitle>
+                        <CardDescription className="text-base">{description}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {children}
+                    </CardContent>
+                </Card>
+
+                {/* Footer */}
+                <p className="text-center text-sm text-muted-foreground mt-6">
+                    &copy; {new Date().getFullYear()} Inventory System. All rights reserved.
+                </p>
             </div>
         </div>
     );

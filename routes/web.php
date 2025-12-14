@@ -25,7 +25,6 @@ Route::get('/', function () {
     $categories = \App\Models\Category::active()->get(['id', 'name']);
 
     return Inertia::render('welcome', [
-        'canRegister' => Features::enabled(Features::registration()),
         'products' => $products,
         'categories' => $categories,
     ]);
