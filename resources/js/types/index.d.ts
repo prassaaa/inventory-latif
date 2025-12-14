@@ -118,6 +118,37 @@ export interface Product {
     updated_at: string;
 }
 
+export type ProductRequestStatus = 'pending' | 'approved' | 'rejected';
+
+export interface ProductRequest {
+    id: number;
+    branch_id: number;
+    requested_by: number;
+    sku: string;
+    name: string;
+    category_id: number;
+    color: string | null;
+    size: string | null;
+    price: number;
+    image: string | null;
+    image_url: string | null;
+    thumbnail_url: string | null;
+    description: string | null;
+    status: ProductRequestStatus;
+    request_notes: string | null;
+    approved_by: number | null;
+    approved_at: string | null;
+    rejection_reason: string | null;
+    product_id: number | null;
+    branch?: Branch;
+    requested_by_user?: User;
+    category?: Category;
+    approved_by_user?: User;
+    product?: Product;
+    created_at: string;
+    updated_at: string;
+}
+
 // ============================================
 // Stock Types
 // ============================================
