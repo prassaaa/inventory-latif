@@ -28,7 +28,7 @@ class ProductRequest extends Model
         'product_id',
     ];
 
-    protected $appends = ['image_url', 'thumbnail_url'];
+    protected $appends = ['image_url', 'thumbnail_url', 'requested_by_user', 'approved_by_user'];
 
     protected function casts(): array
     {
@@ -78,6 +78,17 @@ class ProductRequest extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    // Aliases for frontend compatibility
+    public function getRequestedByUserAttribute()
+    {
+        return $this->requestedBy;
+    }
+
+    public function getApprovedByUserAttribute()
+    {
+        return $this->approvedBy;
     }
 
     public function scopePending($query)

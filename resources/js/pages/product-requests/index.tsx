@@ -17,6 +17,7 @@ import { useState } from 'react';
 interface ProductRequestWithRelations extends Omit<ProductRequest, 'branch' | 'category' | 'requested_by_user' | 'approved_by_user'> {
     branch?: { id: number; name: string; code: string };
     requested_by_user?: { id: number; name: string };
+    approved_by_user?: { id: number; name: string };
     category?: { id: number; name: string };
 }
 
