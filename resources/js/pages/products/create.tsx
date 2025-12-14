@@ -53,7 +53,7 @@ export default function ProductCreate({ categories }: Props) {
             description: '',
             color: '',
             size: '',
-            price: 0,
+            price: undefined,
             is_active: true,
         },
     });

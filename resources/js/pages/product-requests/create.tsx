@@ -52,7 +52,7 @@ export default function ProductRequestCreate({ categories }: Props) {
             description: '',
             color: '',
             size: '',
-            price: 0,
+            price: undefined,
             request_notes: '',
         },
     });

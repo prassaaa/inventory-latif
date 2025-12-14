@@ -40,7 +40,7 @@ export default function StockAdjust({ branches, products }: Props) {
         defaultValues: {
             branch_id: branches.length === 1 ? String(branches[0].id) : '',
             product_id: '',
-            quantity: 0,
+            quantity: undefined,
             notes: '',
         },
     });

@@ -49,7 +49,14 @@ export default function SaleCreate({ branchStocks, branch, paymentMethods }: Pro
 
     const form = useForm<SaleFormValues>({
         resolver: zodResolver(saleSchema),
-        defaultValues: { customer_name: '', customer_phone: '', payment_method: 'cash', discount: 0, notes: '', items: [{ product_id: '', quantity: 1, unit_price: 0 }] },
+        defaultValues: {
+            customer_name: '',
+            customer_phone: '',
+            payment_method: 'cash',
+            discount: undefined,
+            notes: '',
+            items: [{ product_id: '', quantity: 1, unit_price: undefined }]
+        },
     });
 
     const { fields, append, remove } = useFieldArray({ control: form.control, name: 'items' });
