@@ -1,6 +1,7 @@
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { PageHeader } from '@/components/page-header';
 import { TransferStatusBadge } from '@/components/status-badge';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
 import { toast } from '@/lib/toast';
-import { formatDateTime } from '@/lib/utils';
+import { cn, formatDateTime } from '@/lib/utils';
 import type { Branch, BreadcrumbItem, Product, Transfer, TransferItem, User } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { ArrowRight, Check, FileText, Send, X } from 'lucide-react';
@@ -39,6 +40,30 @@ export default function TransferShow({ transfer, userBranch, isSuperAdmin }: Pro
     const [sendItems, setSendItems] = useState(transfer.items.map((i) => ({ id: i.id, quantity_sent: i.quantity_requested })));
     const [receiveItems, setReceiveItems] = useState(transfer.items.map((i) => ({ id: i.id, quantity_received: i.quantity_sent || 0 })));
     const [isLoading, setIsLoading] = useState(false);
+
+    // Helper function to get row styling based on quantity comparison
+    const getQuantityStatus = (requested: number, actual: number | null) => {
+        if (actual === null) return null;
+
+        const diff = actual - requested;
+
+        if (diff === 0) {
+            return {
+                bgClass: 'bg-green-50 hover:bg-green-100',
+                badge: <Badge variant="default" className="bg-green-600 text-white">✓ Sesuai</Badge>,
+            };
+        } else if (diff < 0) {
+            return {
+                bgClass: 'bg-yellow-50 hover:bg-yellow-100',
+                badge: <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">⚠️ Kurang {Math.abs(diff)}</Badge>,
+            };
+        } else {
+            return {
+                bgClass: 'bg-blue-50 hover:bg-blue-100',
+                badge: <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">+ Lebih {diff}</Badge>,
+            };
+        }
+    };
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
@@ -169,14 +194,38 @@ export default function TransferShow({ transfer, userBranch, isSuperAdmin }: Pro
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {transfer.items.map((item) => (
-                                        <TableRow key={item.id}>
-                                            <TableCell><p className="font-medium">{item.product.name}</p><p className="text-sm text-muted-foreground font-mono">{item.product.sku}</p></TableCell>
-                                            <TableCell className="text-right">{item.quantity_requested}</TableCell>
-                                            <TableCell className="text-right">{item.quantity_sent ?? '-'}</TableCell>
-                                            <TableCell className="text-right">{item.quantity_received ?? '-'}</TableCell>
-                                        </TableRow>
-                                    ))}
+                                    {transfer.items.map((item) => {
+                                        // Determine which quantity to compare based on transfer status
+                                        const actualQuantity = transfer.status === 'received'
+                                            ? item.quantity_received
+                                            : transfer.status === 'sent'
+                                            ? item.quantity_sent
+                                            : null;
+
+                                        const status = getQuantityStatus(item.quantity_requested, actualQuantity);
+
+                                        return (
+                                            <TableRow key={item.id} className={cn(status?.bgClass)}>
+                                                <TableCell>
+                                                    <p className="font-medium">{item.product.name}</p>
+                                                    <p className="text-sm text-muted-foreground font-mono">{item.product.sku}</p>
+                                                </TableCell>
+                                                <TableCell className="text-right">{item.quantity_requested}</TableCell>
+                                                <TableCell className="text-right">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <span>{item.quantity_sent ?? '-'}</span>
+                                                        {transfer.status === 'sent' && status?.badge}
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <span>{item.quantity_received ?? '-'}</span>
+                                                        {transfer.status === 'received' && status?.badge}
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
                                 </TableBody>
                             </Table>
                         </CardContent>
