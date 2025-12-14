@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
+import { toast } from '@/lib/toast';
 import { formatCurrency } from '@/lib/utils';
 import type { BreadcrumbItem, ProductRequest } from '@/types';
 import { Head, router } from '@inertiajs/react';
@@ -43,6 +44,12 @@ export default function ProductRequestShow({ productRequest }: Props) {
         if (confirm('Apakah Anda yakin ingin menyetujui request ini? Produk akan ditambahkan ke katalog.')) {
             setIsSubmitting(true);
             router.post(`/product-requests/${productRequest.id}/approve`, {}, {
+                onSuccess: () => {
+                    toast.success('Request Berhasil Disetujui!', 'Produk telah ditambahkan ke katalog');
+                },
+                onError: (errors) => {
+                    toast.error('Gagal Menyetujui Request', Object.values(errors)[0] as string);
+                },
                 onFinish: () => setIsSubmitting(false),
             });
         }
@@ -50,16 +57,22 @@ export default function ProductRequestShow({ productRequest }: Props) {
 
     const handleReject = () => {
         if (!rejectionReason.trim()) {
-            alert('Alasan penolakan harus diisi');
+            toast.error('Alasan Penolakan Wajib Diisi', 'Mohon isi alasan penolakan terlebih dahulu');
             return;
         }
         setIsSubmitting(true);
         router.post(`/product-requests/${productRequest.id}/reject`, {
             rejection_reason: rejectionReason,
         }, {
+            onSuccess: () => {
+                toast.success('Request Berhasil Ditolak', 'Request produk telah ditolak');
+                setRejectDialog(false);
+            },
+            onError: (errors) => {
+                toast.error('Gagal Menolak Request', Object.values(errors)[0] as string);
+            },
             onFinish: () => {
                 setIsSubmitting(false);
-                setRejectDialog(false);
             },
         });
     };

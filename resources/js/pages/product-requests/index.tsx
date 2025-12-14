@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
+import { toast } from '@/lib/toast';
 import { formatCurrency } from '@/lib/utils';
 import type { BreadcrumbItem, PaginatedData, ProductRequest } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
@@ -51,6 +52,19 @@ export default function ProductRequestIndex({ productRequests, filters }: Props)
     const handleClearFilters = () => {
         setSearch('');
         router.get('/product-requests', {}, { preserveState: true, preserveScroll: true });
+    };
+
+    const handleApprove = (id: number, name: string) => {
+        if (confirm(`Apakah Anda yakin ingin menyetujui request "${name}"? Produk akan ditambahkan ke katalog.`)) {
+            router.post(`/product-requests/${id}/approve`, {}, {
+                onSuccess: () => {
+                    toast.success('Request Berhasil Disetujui!', `Produk "${name}" telah ditambahkan ke katalog`);
+                },
+                onError: (errors) => {
+                    toast.error('Gagal Menyetujui Request', Object.values(errors)[0] as string);
+                },
+            });
+        }
     };
 
     const columns: ColumnDef<ProductRequestWithRelations>[] = [
@@ -106,7 +120,7 @@ export default function ProductRequestIndex({ productRequests, filters }: Props)
                         </DropdownMenuItem>
                         {can('approve_product_request') && row.original.status === 'pending' && (
                             <DropdownMenuItem
-                                onClick={() => router.post(`/product-requests/${row.original.id}/approve`)}
+                                onClick={() => handleApprove(row.original.id, row.original.name)}
                             >
                                 <CheckCircle className="mr-2 h-4 w-4" />
                                 Setujui

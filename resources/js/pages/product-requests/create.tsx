@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
+import { toast } from '@/lib/toast';
 import type { BreadcrumbItem, Category } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Head, router } from '@inertiajs/react';
@@ -79,7 +80,15 @@ export default function ProductRequestCreate({ categories }: Props) {
         });
         if (imageFile) formData.append('image', imageFile);
 
-        router.post('/product-requests', formData, { forceFormData: true });
+        router.post('/product-requests', formData, {
+            forceFormData: true,
+            onSuccess: () => {
+                toast.success('Request Produk Berhasil Dibuat!', 'Request Anda akan segera di-review oleh Super Admin');
+            },
+            onError: (errors) => {
+                toast.error('Gagal Membuat Request', Object.values(errors)[0] as string);
+            },
+        });
     };
 
     return (
