@@ -11,8 +11,8 @@ import {
 } from '@/components/ui/sidebar';
 import { usePermissions } from '@/hooks/use-permissions';
 import { dashboard } from '@/routes';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
+import { type NavItem, type SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
 import {
     ArrowLeftRight,
     BarChart3,
@@ -29,6 +29,7 @@ import AppLogo from './app-logo';
 
 export function AppSidebar() {
     const { isSuperAdmin } = usePermissions();
+    const { notifications } = usePage<SharedData>().props;
 
     const mainNavItems: NavItem[] = [
         {
@@ -63,6 +64,8 @@ export function AppSidebar() {
             title: 'Request Produk',
             href: '/product-requests',
             icon: FileText,
+            badge: notifications.productRequests,
+            badgeVariant: 'destructive',
         },
         ...(isSuperAdmin
             ? [
@@ -80,11 +83,15 @@ export function AppSidebar() {
             title: 'Stok',
             href: '/stocks',
             icon: Warehouse,
+            badge: notifications.lowStock,
+            badgeVariant: 'warning',
         },
         {
             title: 'Transfer',
             href: '/transfers',
             icon: ArrowLeftRight,
+            badge: notifications.transfers,
+            badgeVariant: 'destructive',
         },
         {
             title: 'Penjualan',

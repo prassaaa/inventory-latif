@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\NotificationService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -52,6 +53,12 @@ class HandleInertiaRequests extends Middleware
                 ] : null,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'notifications' => $user ? app(NotificationService::class)->getNotifications() : [
+                'productRequests' => 0,
+                'transfers' => 0,
+                'lowStock' => 0,
+                'total' => 0,
+            ],
         ];
     }
 }

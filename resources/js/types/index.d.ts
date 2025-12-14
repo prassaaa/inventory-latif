@@ -25,6 +25,15 @@ export interface NavItem {
     icon?: LucideIcon | null;
     isActive?: boolean;
     permission?: string;
+    badge?: number;
+    badgeVariant?: 'default' | 'destructive' | 'warning';
+}
+
+export interface Notifications {
+    productRequests: number;
+    transfers: number;
+    lowStock: number;
+    total: number;
 }
 
 export interface SharedData {
@@ -32,6 +41,7 @@ export interface SharedData {
     quote: { message: string; author: string };
     auth: Auth;
     sidebarOpen: boolean;
+    notifications: Notifications;
     flash?: {
         success?: string;
         error?: string;
