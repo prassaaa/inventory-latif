@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
+import { toast } from '@/lib/toast';
 import type { Branch, BranchStock, BreadcrumbItem, Product } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Head, router } from '@inertiajs/react';
@@ -88,7 +89,15 @@ export default function TransferCreate({ branches, products, allBranchStocks, us
     };
 
     const onSubmit = (data: TransferFormValues) => {
-        router.post('/transfers', data);
+        const toBranch = branches.find(b => b.id === Number(data.from_branch_id === branches[0].id ? branches[1]?.id : branches[0].id));
+        router.post('/transfers', data, {
+            onSuccess: () => {
+                toast.success('Transfer Berhasil Dibuat!', `Request transfer ke ${toBranch?.name} telah dibuat`);
+            },
+            onError: (errors) => {
+                toast.error('Gagal Membuat Transfer', Object.values(errors)[0] as string);
+            },
+        });
     };
 
     // Get products that have stock in selected branch

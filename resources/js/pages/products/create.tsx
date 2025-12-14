@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
+import { toast } from '@/lib/toast';
 import type { BreadcrumbItem, Category } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Head, router } from '@inertiajs/react';
@@ -85,7 +86,15 @@ export default function ProductCreate({ categories }: Props) {
         });
         if (imageFile) formData.append('image', imageFile);
 
-        router.post('/products', formData, { forceFormData: true });
+        router.post('/products', formData, {
+            forceFormData: true,
+            onSuccess: () => {
+                toast.success('Produk Berhasil Ditambahkan!', `Produk "${data.name}" telah ditambahkan ke katalog`);
+            },
+            onError: (errors) => {
+                toast.error('Gagal Menambahkan Produk', Object.values(errors)[0] as string);
+            },
+        });
     };
 
     return (

@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
+import { toast } from '@/lib/toast';
 import { formatDateTime } from '@/lib/utils';
 import type { Branch, BreadcrumbItem, Product, Transfer, TransferItem, User } from '@/types';
 import { Head, router } from '@inertiajs/react';
@@ -47,22 +48,62 @@ export default function TransferShow({ transfer, userBranch, isSuperAdmin }: Pro
 
     const handleApprove = () => {
         setIsLoading(true);
-        router.post(`/transfers/${transfer.id}/approve`, {}, { onFinish: () => { setIsLoading(false); setShowApproveDialog(false); } });
+        router.post(`/transfers/${transfer.id}/approve`, {}, {
+            onSuccess: () => {
+                toast.success('Transfer Berhasil Disetujui!', `Transfer ${transfer.transfer_number} telah disetujui`);
+                setShowApproveDialog(false);
+            },
+            onError: (errors) => {
+                toast.error('Gagal Menyetujui Transfer', Object.values(errors)[0] as string);
+            },
+            onFinish: () => setIsLoading(false),
+        });
     };
 
     const handleReject = () => {
+        if (!rejectionReason.trim()) {
+            toast.error('Alasan Penolakan Wajib Diisi', 'Mohon isi alasan penolakan terlebih dahulu');
+            return;
+        }
         setIsLoading(true);
-        router.post(`/transfers/${transfer.id}/reject`, { rejection_reason: rejectionReason }, { onFinish: () => { setIsLoading(false); setShowRejectDialog(false); } });
+        router.post(`/transfers/${transfer.id}/reject`, { rejection_reason: rejectionReason }, {
+            onSuccess: () => {
+                toast.success('Transfer Berhasil Ditolak', `Transfer ${transfer.transfer_number} telah ditolak`);
+                setShowRejectDialog(false);
+            },
+            onError: (errors) => {
+                toast.error('Gagal Menolak Transfer', Object.values(errors)[0] as string);
+            },
+            onFinish: () => setIsLoading(false),
+        });
     };
 
     const handleSend = () => {
         setIsLoading(true);
-        router.post(`/transfers/${transfer.id}/send`, { items: sendItems }, { onFinish: () => { setIsLoading(false); setShowSendDialog(false); } });
+        router.post(`/transfers/${transfer.id}/send`, { items: sendItems }, {
+            onSuccess: () => {
+                toast.success('Transfer Berhasil Dikirim!', `Transfer ${transfer.transfer_number} telah dikirim`);
+                setShowSendDialog(false);
+            },
+            onError: (errors) => {
+                toast.error('Gagal Mengirim Transfer', Object.values(errors)[0] as string);
+            },
+            onFinish: () => setIsLoading(false),
+        });
     };
 
     const handleReceive = () => {
         setIsLoading(true);
-        router.post(`/transfers/${transfer.id}/receive`, { items: receiveItems }, { onFinish: () => { setIsLoading(false); setShowReceiveDialog(false); } });
+        router.post(`/transfers/${transfer.id}/receive`, { items: receiveItems }, {
+            onSuccess: () => {
+                toast.success('Transfer Berhasil Diterima!', `Transfer ${transfer.transfer_number} telah diterima`);
+                setShowReceiveDialog(false);
+            },
+            onError: (errors) => {
+                toast.error('Gagal Menerima Transfer', Object.values(errors)[0] as string);
+            },
+            onFinish: () => setIsLoading(false),
+        });
     };
 
     return (

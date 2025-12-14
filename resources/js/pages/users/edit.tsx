@@ -6,6 +6,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
+import { toast } from '@/lib/toast';
 import type { Branch, BreadcrumbItem, Role, User } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Head, router } from '@inertiajs/react';
@@ -63,7 +64,14 @@ export default function UserEdit({ user, branches, roles }: Props) {
     const isAdminCabang = selectedRole === 'admin_cabang';
 
     const onSubmit = (data: UserFormValues) => {
-        router.put(`/users/${user.id}`, data);
+        router.put(`/users/${user.id}`, data, {
+            onSuccess: () => {
+                toast.success('Pengguna Berhasil Diperbarui!', `Pengguna "${data.name}" telah diperbarui`);
+            },
+            onError: (errors) => {
+                toast.error('Gagal Memperbarui Pengguna', Object.values(errors)[0] as string);
+            },
+        });
     };
 
     return (

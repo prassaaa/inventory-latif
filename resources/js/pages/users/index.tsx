@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
+import { toast } from '@/lib/toast';
 import type { Branch, BreadcrumbItem, PaginatedData, Role, User } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import { ColumnDef } from '@tanstack/react-table';
@@ -60,10 +61,17 @@ export default function UserIndex({ users, branches, filters }: Props) {
     const handleDelete = () => {
         if (!deleteDialog.user) return;
         setIsDeleting(true);
+        const userName = deleteDialog.user.name;
         router.delete(`/users/${deleteDialog.user.id}`, {
+            onSuccess: () => {
+                toast.success('Pengguna Berhasil Dihapus!', `Pengguna "${userName}" telah dihapus`);
+                setDeleteDialog({ open: false, user: null });
+            },
+            onError: (errors) => {
+                toast.error('Gagal Menghapus Pengguna', Object.values(errors)[0] as string);
+            },
             onFinish: () => {
                 setIsDeleting(false);
-                setDeleteDialog({ open: false, user: null });
             },
         });
     };

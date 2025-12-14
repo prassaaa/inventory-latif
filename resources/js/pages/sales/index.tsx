@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
+import { toast } from '@/lib/toast';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import type { Branch, BreadcrumbItem, PaginatedData, Sale, User } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
@@ -54,9 +55,17 @@ export default function SaleIndex({ sales, branches, filters, isSuperAdmin }: Pr
 
     const handleDelete = () => {
         if (!deleteDialog.sale) return;
+        const invoiceNumber = deleteDialog.sale.invoice_number;
         setIsDeleting(true);
         router.delete(`/sales/${deleteDialog.sale.id}`, {
-            onFinish: () => { setIsDeleting(false); setDeleteDialog({ open: false, sale: null }); },
+            onSuccess: () => {
+                toast.success('Penjualan Berhasil Dihapus!', `Invoice ${invoiceNumber} telah dihapus`);
+                setDeleteDialog({ open: false, sale: null });
+            },
+            onError: (errors) => {
+                toast.error('Gagal Menghapus Penjualan', Object.values(errors)[0] as string);
+            },
+            onFinish: () => setIsDeleting(false),
         });
     };
 

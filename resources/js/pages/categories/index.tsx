@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
+import { toast } from '@/lib/toast';
 import type { BreadcrumbItem, Category, PaginatedData } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import { ColumnDef } from '@tanstack/react-table';
@@ -44,10 +45,17 @@ export default function CategoryIndex({ categories, filters }: Props) {
     const handleDelete = () => {
         if (!deleteDialog.category) return;
         setIsDeleting(true);
+        const categoryName = deleteDialog.category.name;
         router.delete(`/categories/${deleteDialog.category.id}`, {
+            onSuccess: () => {
+                toast.success('Kategori Berhasil Dihapus!', `Kategori "${categoryName}" telah dihapus`);
+                setDeleteDialog({ open: false, category: null });
+            },
+            onError: (errors) => {
+                toast.error('Gagal Menghapus Kategori', Object.values(errors)[0] as string);
+            },
             onFinish: () => {
                 setIsDeleting(false);
-                setDeleteDialog({ open: false, category: null });
             },
         });
     };

@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
+import { toast } from '@/lib/toast';
 import SettingsLayout from '@/layouts/settings/layout';
 import { edit } from '@/routes/profile';
 
@@ -45,6 +46,12 @@ export default function Profile({
                         {...ProfileController.update.form()}
                         options={{
                             preserveScroll: true,
+                            onSuccess: () => {
+                                toast.success('Profil Berhasil Diperbarui!', 'Informasi profil Anda telah diperbarui');
+                            },
+                            onError: (errors) => {
+                                toast.error('Gagal Memperbarui Profil', Object.values(errors)[0] as string);
+                            },
                         }}
                         className="space-y-6"
                     >

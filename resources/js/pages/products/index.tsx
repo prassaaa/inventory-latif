@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
+import { toast } from '@/lib/toast';
 import { formatCurrency } from '@/lib/utils';
 import type { BreadcrumbItem, Category, PaginatedData, Product } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
@@ -58,10 +59,17 @@ export default function ProductIndex({ products, categories, filters }: Props) {
     const handleDelete = () => {
         if (!deleteDialog.product) return;
         setIsDeleting(true);
+        const productName = deleteDialog.product.name;
         router.delete(`/products/${deleteDialog.product.id}`, {
+            onSuccess: () => {
+                toast.success('Produk Berhasil Dihapus!', `Produk "${productName}" telah dihapus dari katalog`);
+                setDeleteDialog({ open: false, product: null });
+            },
+            onError: (errors) => {
+                toast.error('Gagal Menghapus Produk', Object.values(errors)[0] as string);
+            },
             onFinish: () => {
                 setIsDeleting(false);
-                setDeleteDialog({ open: false, product: null });
             },
         });
     };

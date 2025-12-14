@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
+import { toast } from '@/lib/toast';
 import type { BreadcrumbItem, Category, Product } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Head, router } from '@inertiajs/react';
@@ -88,7 +89,15 @@ export default function ProductEdit({ product, categories }: Props) {
         });
         if (imageFile) formData.append('image', imageFile);
 
-        router.post(`/products/${product.id}`, formData, { forceFormData: true });
+        router.post(`/products/${product.id}`, formData, {
+            forceFormData: true,
+            onSuccess: () => {
+                toast.success('Produk Berhasil Diperbarui!', `Produk "${data.name}" telah diperbarui`);
+            },
+            onError: (errors) => {
+                toast.error('Gagal Memperbarui Produk', Object.values(errors)[0] as string);
+            },
+        });
     };
 
     return (

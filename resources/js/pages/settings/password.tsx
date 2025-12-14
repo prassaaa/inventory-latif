@@ -1,6 +1,7 @@
 import PasswordController from '@/actions/App/Http/Controllers/Settings/PasswordController';
 import InputError from '@/components/input-error';
 import AppLayout from '@/layouts/app-layout';
+import { toast } from '@/lib/toast';
 import SettingsLayout from '@/layouts/settings/layout';
 import { type BreadcrumbItem } from '@/types';
 import { Transition } from '@headlessui/react';
@@ -39,6 +40,12 @@ export default function Password() {
                         {...PasswordController.update.form()}
                         options={{
                             preserveScroll: true,
+                            onSuccess: () => {
+                                toast.success('Password Berhasil Diperbarui!', 'Password Anda telah diubah');
+                            },
+                            onError: (errors) => {
+                                toast.error('Gagal Memperbarui Password', Object.values(errors)[0] as string);
+                            },
                         }}
                         resetOnError={[
                             'password',

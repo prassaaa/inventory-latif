@@ -6,6 +6,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
+import { toast } from '@/lib/toast';
 import type { Branch, BreadcrumbItem, Role } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Head, router } from '@inertiajs/react';
@@ -57,7 +58,14 @@ export default function UserCreate({ branches, roles }: Props) {
     const isAdminCabang = selectedRole === 'admin_cabang';
 
     const onSubmit = (data: UserFormValues) => {
-        router.post('/users', data);
+        router.post('/users', data, {
+            onSuccess: () => {
+                toast.success('Pengguna Berhasil Ditambahkan!', `Pengguna "${data.name}" telah ditambahkan`);
+            },
+            onError: (errors) => {
+                toast.error('Gagal Menambahkan Pengguna', Object.values(errors)[0] as string);
+            },
+        });
     };
 
     return (

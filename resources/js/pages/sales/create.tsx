@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
+import { toast } from '@/lib/toast';
 import { formatCurrency } from '@/lib/utils';
 import type { Branch, BranchStock, BreadcrumbItem, Product } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -80,7 +81,18 @@ export default function SaleCreate({ branchStocks, branch, paymentMethods }: Pro
         remove(index);
     };
 
-    const onSubmit = (data: SaleFormValues) => router.post('/sales', data);
+    const onSubmit = (data: SaleFormValues) => {
+        const totalItems = data.items.length;
+        const totalQty = data.items.reduce((sum, item) => sum + item.quantity, 0);
+        router.post('/sales', data, {
+            onSuccess: () => {
+                toast.success('Penjualan Berhasil Dibuat!', `${totalItems} produk (${totalQty} item) telah terjual`);
+            },
+            onError: (errors) => {
+                toast.error('Gagal Membuat Penjualan', Object.values(errors)[0] as string);
+            },
+        });
+    };
 
     // Get available products for a specific row (exclude already selected, but include current row's product)
     const getAvailableProductsForRow = (currentProductId: string) => {

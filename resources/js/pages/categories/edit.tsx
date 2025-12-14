@@ -6,6 +6,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
+import { toast } from '@/lib/toast';
 import { slugify } from '@/lib/utils';
 import type { BreadcrumbItem, Category } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -46,7 +47,14 @@ export default function CategoryEdit({ category }: Props) {
     });
 
     const onSubmit = (data: CategoryFormValues) => {
-        router.put(`/categories/${category.id}`, data);
+        router.put(`/categories/${category.id}`, data, {
+            onSuccess: () => {
+                toast.success('Kategori Berhasil Diperbarui!', `Kategori "${data.name}" telah diperbarui`);
+            },
+            onError: (errors) => {
+                toast.error('Gagal Memperbarui Kategori', Object.values(errors)[0] as string);
+            },
+        });
     };
 
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {

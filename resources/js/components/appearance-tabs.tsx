@@ -1,4 +1,5 @@
 import { Appearance, useAppearance } from '@/hooks/use-appearance';
+import { toast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
 import { LucideIcon, Monitor, Moon, Sun } from 'lucide-react';
 import { HTMLAttributes } from 'react';
@@ -26,7 +27,10 @@ export default function AppearanceToggleTab({
             {tabs.map(({ value, icon: Icon, label }) => (
                 <button
                     key={value}
-                    onClick={() => updateAppearance(value)}
+                    onClick={() => {
+                        updateAppearance(value);
+                        toast.success('Tema Berhasil Diubah!', `Tema diubah ke ${label} mode`);
+                    }}
                     className={cn(
                         'flex items-center rounded-md px-3.5 py-1.5 transition-colors',
                         appearance === value

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
+import { toast } from '@/lib/toast';
 import type { Branch, BreadcrumbItem, Product } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Head, router } from '@inertiajs/react';
@@ -45,13 +46,15 @@ export default function StockAdjust({ branches, products }: Props) {
     });
 
     const onSubmit = (data: AdjustFormValues) => {
-        console.log('Submitting data:', data);
+        const product = products.find(p => p.id === Number(data.product_id));
+        const action = data.quantity > 0 ? 'ditambahkan' : 'dikurangi';
         router.post('/stocks/adjust', data, {
             onSuccess: () => {
+                toast.success('Stok Berhasil Disesuaikan!', `Stok ${product?.name} berhasil ${action}`);
                 form.reset();
             },
             onError: (errors) => {
-                console.log('Errors:', errors);
+                toast.error('Gagal Menyesuaikan Stok', Object.values(errors)[0] as string);
             },
         });
     };

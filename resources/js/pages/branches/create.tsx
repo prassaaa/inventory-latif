@@ -6,6 +6,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
+import { toast } from '@/lib/toast';
 import type { BreadcrumbItem } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Head, router } from '@inertiajs/react';
@@ -44,7 +45,14 @@ export default function BranchCreate() {
     });
 
     const onSubmit = (data: BranchFormValues) => {
-        router.post('/branches', data);
+        router.post('/branches', data, {
+            onSuccess: () => {
+                toast.success('Cabang Berhasil Ditambahkan!', `Cabang "${data.name}" telah ditambahkan`);
+            },
+            onError: (errors) => {
+                toast.error('Gagal Menambahkan Cabang', Object.values(errors)[0] as string);
+            },
+        });
     };
 
     return (

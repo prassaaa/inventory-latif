@@ -6,6 +6,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
+import { toast } from '@/lib/toast';
 import { slugify } from '@/lib/utils';
 import type { BreadcrumbItem } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -41,7 +42,14 @@ export default function CategoryCreate() {
     });
 
     const onSubmit = (data: CategoryFormValues) => {
-        router.post('/categories', data);
+        router.post('/categories', data, {
+            onSuccess: () => {
+                toast.success('Kategori Berhasil Ditambahkan!', `Kategori "${data.name}" telah ditambahkan`);
+            },
+            onError: (errors) => {
+                toast.error('Gagal Menambahkan Kategori', Object.values(errors)[0] as string);
+            },
+        });
     };
 
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {

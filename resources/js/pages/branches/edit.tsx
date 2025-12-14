@@ -6,6 +6,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
+import { toast } from '@/lib/toast';
 import type { Branch, BreadcrumbItem } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Head, router } from '@inertiajs/react';
@@ -49,7 +50,14 @@ export default function BranchEdit({ branch }: Props) {
     });
 
     const onSubmit = (data: BranchFormValues) => {
-        router.put(`/branches/${branch.id}`, data);
+        router.put(`/branches/${branch.id}`, data, {
+            onSuccess: () => {
+                toast.success('Cabang Berhasil Diperbarui!', `Cabang "${data.name}" telah diperbarui`);
+            },
+            onError: (errors) => {
+                toast.error('Gagal Memperbarui Cabang', Object.values(errors)[0] as string);
+            },
+        });
     };
 
     return (

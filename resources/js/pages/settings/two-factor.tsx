@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTwoFactorAuth } from '@/hooks/use-two-factor-auth';
 import AppLayout from '@/layouts/app-layout';
+import { toast } from '@/lib/toast';
 import SettingsLayout from '@/layouts/settings/layout';
 import { disable, enable, show } from '@/routes/two-factor';
 import { type BreadcrumbItem } from '@/types';
@@ -66,7 +67,17 @@ export default function TwoFactor({
                             />
 
                             <div className="relative inline">
-                                <Form {...disable.form()}>
+                                <Form
+                                    {...disable.form()}
+                                    options={{
+                                        onSuccess: () => {
+                                            toast.success('2FA Berhasil Dinonaktifkan!', 'Two-factor authentication telah dinonaktifkan');
+                                        },
+                                        onError: (errors) => {
+                                            toast.error('Gagal Menonaktifkan 2FA', Object.values(errors)[0] as string);
+                                        },
+                                    }}
+                                >
                                     {({ processing }) => (
                                         <Button
                                             variant="destructive"
@@ -100,9 +111,15 @@ export default function TwoFactor({
                                 ) : (
                                     <Form
                                         {...enable.form()}
-                                        onSuccess={() =>
-                                            setShowSetupModal(true)
-                                        }
+                                        onSuccess={() => {
+                                            setShowSetupModal(true);
+                                            toast.success('2FA Berhasil Diaktifkan!', 'Silakan scan QR code untuk melanjutkan setup');
+                                        }}
+                                        options={{
+                                            onError: (errors) => {
+                                                toast.error('Gagal Mengaktifkan 2FA', Object.values(errors)[0] as string);
+                                            },
+                                        }}
                                     >
                                         {({ processing }) => (
                                             <Button

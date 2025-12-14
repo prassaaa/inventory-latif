@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
+import { toast } from '@/lib/toast';
 import type { Branch, BreadcrumbItem, PaginatedData } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import { ColumnDef } from '@tanstack/react-table';
@@ -52,10 +53,17 @@ export default function BranchIndex({ branches, filters }: Props) {
     const handleDelete = () => {
         if (!deleteDialog.branch) return;
         setIsDeleting(true);
+        const branchName = deleteDialog.branch.name;
         router.delete(`/branches/${deleteDialog.branch.id}`, {
+            onSuccess: () => {
+                toast.success('Cabang Berhasil Dihapus!', `Cabang "${branchName}" telah dihapus`);
+                setDeleteDialog({ open: false, branch: null });
+            },
+            onError: (errors) => {
+                toast.error('Gagal Menghapus Cabang', Object.values(errors)[0] as string);
+            },
             onFinish: () => {
                 setIsDeleting(false);
-                setDeleteDialog({ open: false, branch: null });
             },
         });
     };
