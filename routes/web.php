@@ -17,7 +17,10 @@ use Laravel\Fortify\Features;
 Route::get('/', function () {
     $products = \App\Models\Product::query()
         ->active()
-        ->with('category:id,name')
+        ->with([
+            'category:id,name',
+            'branchStocks.branch:id,name,code'
+        ])
         ->latest()
         ->take(12)
         ->get();

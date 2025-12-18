@@ -3,13 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { formatCurrency } from '@/lib/utils';
-import type { Category, Product } from '@/types';
+import type { Branch, BranchStock, Category, Product } from '@/types';
 import { Head, Link } from '@inertiajs/react';
 import { Package, Search, Store } from 'lucide-react';
 import { useState } from 'react';
 
-interface ProductWithCategory extends Omit<Product, 'category'> {
+interface ProductWithCategory extends Omit<Product, 'category' | 'branch_stocks'> {
     category: Category | null;
+    branch_stocks?: (BranchStock & { branch: Branch })[];
 }
 
 interface Props {
@@ -153,6 +154,9 @@ export default function Welcome({ products, categories }: Props) {
 
 // Product Card Component
 function ProductCard({ product }: { product: ProductWithCategory }) {
+    // Calculate total stock across all branches
+    const totalStock = product.branch_stocks?.reduce((sum, stock) => sum + stock.quantity, 0) || 0;
+
     return (
         <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/50">
             <CardContent className="p-0">
@@ -177,14 +181,15 @@ function ProductCard({ product }: { product: ProductWithCategory }) {
                         </Badge>
                     )}
 
-                    {/* Active Status */}
-                    {product.is_active && (
-                        <div className="absolute top-3 left-3">
-                            <Badge variant="default" className="bg-green-600 text-white">
-                                Aktif
-                            </Badge>
-                        </div>
-                    )}
+                    {/* Stock Badge */}
+                    <div className="absolute top-3 left-3">
+                        <Badge
+                            variant="default"
+                            className={totalStock > 0 ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}
+                        >
+                            {totalStock > 0 ? `Stock: ${totalStock}` : 'Habis'}
+                        </Badge>
+                    </div>
                 </div>
 
                 {/* Product Info */}
@@ -222,6 +227,34 @@ function ProductCard({ product }: { product: ProductWithCategory }) {
                             )}
                         </div>
                     )}
+
+                    {/* Stock per Branch */}
+                    <div className="pt-3 border-t space-y-2">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                            Ketersediaan Stock
+                        </p>
+                        <div className="space-y-1.5">
+                            {product.branch_stocks && product.branch_stocks.length > 0 ? (
+                                product.branch_stocks.map((stock) => (
+                                    <div
+                                        key={stock.id}
+                                        className="flex items-center justify-between text-sm bg-muted/30 px-3 py-1.5 rounded"
+                                    >
+                                        <span className="font-medium text-foreground">
+                                            {stock.branch.name}
+                                        </span>
+                                        <span className={`font-bold ${stock.quantity > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                            {stock.quantity} pcs
+                                        </span>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-xs text-muted-foreground italic">
+                                    Belum ada data stock
+                                </p>
+                            )}
+                        </div>
+                    </div>
 
                     {/* Price */}
                     <div className="pt-3 border-t">
