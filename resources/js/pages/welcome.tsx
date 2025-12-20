@@ -6,7 +6,7 @@ import { formatCurrency } from '@/lib/utils';
 import type { Branch, BranchStock, Category, PaginatedData, Product } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import { Loader2, Package, Search, Store } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface ProductWithCategory extends Omit<Product, 'category' | 'branch_stocks'> {
     category: Category | null;
@@ -26,15 +26,18 @@ export default function Welcome({ products, categories }: Props) {
     const [lastPage, setLastPage] = useState(products?.current_page || 1);
 
     // Update loaded products when new page is loaded
-    if (products?.current_page && products.current_page !== lastPage) {
-        if (products.current_page === 1) {
-            setLoadedProducts(products.data || []);
-        } else {
-            setLoadedProducts((prev) => [...prev, ...(products.data || [])]);
+    useEffect(() => {
+        if (products?.current_page && products.current_page !== lastPage) {
+            if (products.current_page === 1) {
+                setLoadedProducts(products.data || []);
+            } else {
+                setLoadedProducts((prev) => [...prev, ...(products.data || [])]);
+            }
+            setLastPage(products.current_page);
+            setIsLoadingMore(false);
         }
-        setLastPage(products.current_page);
-        setIsLoadingMore(false);
-    }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [products?.current_page, products?.data]);
 
     const filteredProducts = (loadedProducts || []).filter((product) => {
         const matchSearch = product.name.toLowerCase().includes(search.toLowerCase()) ||
