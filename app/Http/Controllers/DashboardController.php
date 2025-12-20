@@ -25,6 +25,11 @@ class DashboardController extends Controller
             return $this->superAdminDashboard();
         }
 
+        // If user doesn't have a branch, treat as super admin
+        if (!$user->branch_id) {
+            return $this->superAdminDashboard();
+        }
+
         return $this->adminCabangDashboard($user);
     }
 
