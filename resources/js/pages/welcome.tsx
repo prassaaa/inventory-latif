@@ -22,21 +22,21 @@ export default function Welcome({ products, categories }: Props) {
     const [search, setSearch] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('');
     const [isLoadingMore, setIsLoadingMore] = useState(false);
-    const [loadedProducts, setLoadedProducts] = useState<ProductWithCategory[]>(products.data);
-    const [lastPage, setLastPage] = useState(products.current_page);
+    const [loadedProducts, setLoadedProducts] = useState<ProductWithCategory[]>(products?.data || []);
+    const [lastPage, setLastPage] = useState(products?.current_page || 1);
 
     // Update loaded products when new page is loaded
-    if (products.current_page !== lastPage) {
+    if (products?.current_page && products.current_page !== lastPage) {
         if (products.current_page === 1) {
-            setLoadedProducts(products.data);
+            setLoadedProducts(products.data || []);
         } else {
-            setLoadedProducts((prev) => [...prev, ...products.data]);
+            setLoadedProducts((prev) => [...prev, ...(products.data || [])]);
         }
         setLastPage(products.current_page);
         setIsLoadingMore(false);
     }
 
-    const filteredProducts = loadedProducts.filter((product) => {
+    const filteredProducts = (loadedProducts || []).filter((product) => {
         const matchSearch = product.name.toLowerCase().includes(search.toLowerCase()) ||
                           product.sku.toLowerCase().includes(search.toLowerCase());
         const matchCategory = !selectedCategory || product.category_id === Number(selectedCategory);
@@ -44,12 +44,13 @@ export default function Welcome({ products, categories }: Props) {
     });
 
     const handleLoadMore = () => {
-        if (products.next_page_url && !isLoadingMore) {
+        if (products?.next_page_url && !isLoadingMore) {
             setIsLoadingMore(true);
             router.visit(products.next_page_url, {
                 preserveState: true,
                 preserveScroll: true,
                 only: ['products'],
+                onFinish: () => setIsLoadingMore(false),
             });
         }
     };
@@ -87,7 +88,7 @@ export default function Welcome({ products, categories }: Props) {
                             <div>
                                 <h2 className="text-3xl font-bold tracking-tight">Katalog Produk</h2>
                                 <p className="text-muted-foreground mt-1">
-                                    Menampilkan {filteredProducts.length} dari {products.total} produk
+                                    Menampilkan {filteredProducts.length} dari {products?.total || 0} produk
                                 </p>
                             </div>
                         </div>
@@ -143,7 +144,7 @@ export default function Welcome({ products, categories }: Props) {
                                 </div>
 
                                 {/* Load More Button */}
-                                {!search && !selectedCategory && products.next_page_url && (
+                                {!search && !selectedCategory && products?.next_page_url && (
                                     <div className="flex justify-center pt-4">
                                         <Button
                                             size="lg"
@@ -160,6 +161,11 @@ export default function Welcome({ products, categories }: Props) {
                                             ) : (
                                                 <>
                                                     Muat Lebih Banyak
+                                                    {products?.total && loadedProducts.length < products.total && (
+                                                        <span className="ml-2 text-xs text-muted-foreground">
+                                                            ({products.total - loadedProducts.length} lagi)
+                                                        </span>
+                                                    )}
                                                 </>
                                             )}
                                         </Button>
