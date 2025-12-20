@@ -22,8 +22,7 @@ Route::get('/', function () {
             'branchStocks.branch:id,name,code'
         ])
         ->latest()
-        ->take(12)
-        ->get();
+        ->paginate(12);
 
     $categories = \App\Models\Category::active()->get(['id', 'name']);
 

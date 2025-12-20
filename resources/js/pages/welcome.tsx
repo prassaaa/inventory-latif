@@ -3,9 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { formatCurrency } from '@/lib/utils';
-import type { Branch, BranchStock, Category, Product } from '@/types';
-import { Head, Link } from '@inertiajs/react';
-import { Package, Search, Store } from 'lucide-react';
+import type { Branch, BranchStock, Category, PaginatedData, Product } from '@/types';
+import { Head, Link, router } from '@inertiajs/react';
+import { Loader2, Package, Search, Store } from 'lucide-react';
 import { useState } from 'react';
 
 interface ProductWithCategory extends Omit<Product, 'category' | 'branch_stocks'> {
@@ -14,20 +14,45 @@ interface ProductWithCategory extends Omit<Product, 'category' | 'branch_stocks'
 }
 
 interface Props {
-    products: ProductWithCategory[];
+    products: PaginatedData<ProductWithCategory>;
     categories: Category[];
 }
 
 export default function Welcome({ products, categories }: Props) {
     const [search, setSearch] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('');
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [loadedProducts, setLoadedProducts] = useState<ProductWithCategory[]>(products.data);
+    const [lastPage, setLastPage] = useState(products.current_page);
 
-    const filteredProducts = products.filter((product) => {
+    // Update loaded products when new page is loaded
+    if (products.current_page !== lastPage) {
+        if (products.current_page === 1) {
+            setLoadedProducts(products.data);
+        } else {
+            setLoadedProducts((prev) => [...prev, ...products.data]);
+        }
+        setLastPage(products.current_page);
+        setIsLoadingMore(false);
+    }
+
+    const filteredProducts = loadedProducts.filter((product) => {
         const matchSearch = product.name.toLowerCase().includes(search.toLowerCase()) ||
                           product.sku.toLowerCase().includes(search.toLowerCase());
         const matchCategory = !selectedCategory || product.category_id === Number(selectedCategory);
         return matchSearch && matchCategory;
     });
+
+    const handleLoadMore = () => {
+        if (products.next_page_url && !isLoadingMore) {
+            setIsLoadingMore(true);
+            router.visit(products.next_page_url, {
+                preserveState: true,
+                preserveScroll: true,
+                only: ['products'],
+            });
+        }
+    };
 
     return (
         <>
@@ -62,7 +87,7 @@ export default function Welcome({ products, categories }: Props) {
                             <div>
                                 <h2 className="text-3xl font-bold tracking-tight">Katalog Produk</h2>
                                 <p className="text-muted-foreground mt-1">
-                                    Menampilkan {filteredProducts.length} dari {products.length} produk
+                                    Menampilkan {filteredProducts.length} dari {products.total} produk
                                 </p>
                             </div>
                         </div>
@@ -110,11 +135,37 @@ export default function Welcome({ products, categories }: Props) {
 
                         {/* Products Grid */}
                         {filteredProducts.length > 0 ? (
-                            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                                {filteredProducts.map((product) => (
-                                    <ProductCard key={product.id} product={product} />
-                                ))}
-                            </div>
+                            <>
+                                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                                    {filteredProducts.map((product) => (
+                                        <ProductCard key={product.id} product={product} />
+                                    ))}
+                                </div>
+
+                                {/* Load More Button */}
+                                {!search && !selectedCategory && products.next_page_url && (
+                                    <div className="flex justify-center pt-4">
+                                        <Button
+                                            size="lg"
+                                            variant="outline"
+                                            onClick={handleLoadMore}
+                                            disabled={isLoadingMore}
+                                            className="min-w-[200px]"
+                                        >
+                                            {isLoadingMore ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Memuat...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    Muat Lebih Banyak
+                                                </>
+                                            )}
+                                        </Button>
+                                    </div>
+                                )}
+                            </>
                         ) : (
                             <Card>
                                 <CardContent className="flex flex-col items-center justify-center py-16">
