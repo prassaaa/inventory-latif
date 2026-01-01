@@ -105,10 +105,39 @@ class ProductService
     }
 
     /**
+     * Generate unique SKU
+     * Format: PRD-YYYYMM-XXXX
+     */
+    public function generateSku(): string
+    {
+        $prefix = 'PRD';
+        $yearMonth = date('Ym');
+        $basePrefix = "{$prefix}-{$yearMonth}-";
+
+        $lastProduct = Product::where('sku', 'like', $basePrefix . '%')
+            ->orderBy('sku', 'desc')
+            ->first();
+
+        if ($lastProduct) {
+            $lastNumber = (int) substr($lastProduct->sku, -4);
+            $newNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
+        } else {
+            $newNumber = '0001';
+        }
+
+        return $basePrefix . $newNumber;
+    }
+
+    /**
      * Create product with image
      */
     public function createProduct(array $data, ?UploadedFile $image = null): Product
     {
+        // Auto-generate SKU if not provided
+        if (empty($data['sku'])) {
+            $data['sku'] = $this->generateSku();
+        }
+
         if ($image) {
             $data['image'] = $this->uploadImage($image);
         }

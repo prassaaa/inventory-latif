@@ -1,10 +1,30 @@
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+    Form,
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { toast } from '@/lib/toast';
@@ -42,7 +62,9 @@ export default function ProductEdit({ product, categories }: Props) {
         { title: 'Edit', href: `/products/${product.id}/edit` },
     ];
 
-    const [imagePreview, setImagePreview] = useState<string | null>(product.image_url || null);
+    const [imagePreview, setImagePreview] = useState<string | null>(
+        product.image_url || null,
+    );
     const [imageFile, setImageFile] = useState<File | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -92,10 +114,16 @@ export default function ProductEdit({ product, categories }: Props) {
         router.post(`/products/${product.id}`, formData, {
             forceFormData: true,
             onSuccess: () => {
-                toast.success('Produk Berhasil Diperbarui!', `Produk "${data.name}" telah diperbarui`);
+                toast.success(
+                    'Produk Berhasil Diperbarui!',
+                    `Produk "${data.name}" telah diperbarui`,
+                );
             },
             onError: (errors) => {
-                toast.error('Gagal Memperbarui Produk', Object.values(errors)[0] as string);
+                toast.error(
+                    'Gagal Memperbarui Produk',
+                    Object.values(errors)[0] as string,
+                );
             },
         });
     };
@@ -104,123 +132,272 @@ export default function ProductEdit({ product, categories }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Edit ${product.name}`} />
             <div className="flex flex-col gap-6 p-4">
-                <PageHeader title="Edit Produk" description={`Edit produk ${product.name}`} />
+                <PageHeader
+                    title="Edit Produk"
+                    description={`Edit produk ${product.name}`}
+                />
 
                 <Card className="max-w-2xl">
                     <CardHeader>
                         <CardTitle>Informasi Produk</CardTitle>
-                        <CardDescription>Perbarui detail produk</CardDescription>
+                        <CardDescription>
+                            Perbarui detail produk
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Form {...form}>
-                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                            <form
+                                onSubmit={form.handleSubmit(onSubmit)}
+                                className="space-y-6"
+                            >
                                 <div className="grid gap-4 sm:grid-cols-2">
-                                    <FormField control={form.control} name="name" render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Nama Produk *</FormLabel>
-                                            <FormControl><Input placeholder="Kursi Kantor" {...field} /></FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )} />
-                                    <FormField control={form.control} name="sku" render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>SKU *</FormLabel>
-                                            <FormControl><Input placeholder="KRS-001" {...field} className="uppercase" /></FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )} />
+                                    <FormField
+                                        control={form.control}
+                                        name="name"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>
+                                                    Nama Produk *
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="Kursi Kantor"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="sku"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>SKU</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        {...field}
+                                                        disabled
+                                                        className="bg-muted uppercase"
+                                                    />
+                                                </FormControl>
+                                                <FormDescription>
+                                                    SKU tidak dapat diubah
+                                                </FormDescription>
+                                            </FormItem>
+                                        )}
+                                    />
                                 </div>
 
                                 <div className="grid gap-4 sm:grid-cols-2">
-                                    <FormField control={form.control} name="category_id" render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Kategori *</FormLabel>
-                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                <FormControl><SelectTrigger><SelectValue placeholder="Pilih kategori" /></SelectTrigger></FormControl>
-                                                <SelectContent>
-                                                    {categories.map((cat) => (<SelectItem key={cat.id} value={String(cat.id)}>{cat.name}</SelectItem>))}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )} />
-                                    <FormField control={form.control} name="price" render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Harga *</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    type="number"
-                                                    placeholder="0"
+                                    <FormField
+                                        control={form.control}
+                                        name="category_id"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>
+                                                    Kategori *
+                                                </FormLabel>
+                                                <Select
+                                                    onValueChange={
+                                                        field.onChange
+                                                    }
                                                     value={field.value}
-                                                    onChange={(e) => field.onChange(e.target.value === '' ? 0 : Number(e.target.value))}
-                                                    onBlur={field.onBlur}
-                                                    name={field.name}
-                                                    ref={field.ref}
+                                                >
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Pilih kategori" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {categories.map(
+                                                            (cat) => (
+                                                                <SelectItem
+                                                                    key={cat.id}
+                                                                    value={String(
+                                                                        cat.id,
+                                                                    )}
+                                                                >
+                                                                    {cat.name}
+                                                                </SelectItem>
+                                                            ),
+                                                        )}
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="price"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Harga *</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="0"
+                                                        value={field.value}
+                                                        onChange={(e) =>
+                                                            field.onChange(
+                                                                e.target
+                                                                    .value ===
+                                                                    ''
+                                                                    ? 0
+                                                                    : Number(
+                                                                          e
+                                                                              .target
+                                                                              .value,
+                                                                      ),
+                                                            )
+                                                        }
+                                                        onBlur={field.onBlur}
+                                                        name={field.name}
+                                                        ref={field.ref}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <FormField
+                                        control={form.control}
+                                        name="color"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Warna</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="Hitam"
+                                                        {...field}
+                                                        value={
+                                                            field.value ?? ''
+                                                        }
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="size"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Ukuran</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="50x50x100 cm"
+                                                        {...field}
+                                                        value={
+                                                            field.value ?? ''
+                                                        }
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+
+                                <FormField
+                                    control={form.control}
+                                    name="description"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Deskripsi</FormLabel>
+                                            <FormControl>
+                                                <Textarea
+                                                    placeholder="Deskripsi produk"
+                                                    {...field}
+                                                    value={field.value ?? ''}
                                                 />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
-                                    )} />
-                                </div>
-
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <FormField control={form.control} name="color" render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Warna</FormLabel>
-                                            <FormControl><Input placeholder="Hitam" {...field} value={field.value ?? ''} /></FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )} />
-                                    <FormField control={form.control} name="size" render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Ukuran</FormLabel>
-                                            <FormControl><Input placeholder="50x50x100 cm" {...field} value={field.value ?? ''} /></FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )} />
-                                </div>
-
-                                <FormField control={form.control} name="description" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Deskripsi</FormLabel>
-                                        <FormControl><Textarea placeholder="Deskripsi produk" {...field} value={field.value ?? ''} /></FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )} />
+                                    )}
+                                />
 
                                 <div>
                                     <FormLabel>Gambar Produk</FormLabel>
                                     <div className="mt-2">
                                         {imagePreview ? (
                                             <div className="relative inline-block">
-                                                <img src={imagePreview} alt="Preview" className="h-32 w-32 rounded object-cover" />
-                                                <Button type="button" variant="destructive" size="icon" className="absolute -right-2 -top-2 h-6 w-6" onClick={removeImage}>
+                                                <img
+                                                    src={imagePreview}
+                                                    alt="Preview"
+                                                    className="h-32 w-32 rounded object-cover"
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    variant="destructive"
+                                                    size="icon"
+                                                    className="absolute -top-2 -right-2 h-6 w-6"
+                                                    onClick={removeImage}
+                                                >
                                                     <X className="h-4 w-4" />
                                                 </Button>
                                             </div>
                                         ) : (
                                             <label className="flex h-32 w-32 cursor-pointer items-center justify-center rounded border-2 border-dashed hover:bg-muted/50">
                                                 <Upload className="h-8 w-8 text-muted-foreground" />
-                                                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+                                                <input
+                                                    ref={fileInputRef}
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={handleImageChange}
+                                                />
                                             </label>
                                         )}
                                     </div>
-                                    <FormDescription>Format: JPG, PNG. Max 2MB</FormDescription>
+                                    <FormDescription>
+                                        Format: JPG, PNG. Max 2MB
+                                    </FormDescription>
                                 </div>
 
-                                <FormField control={form.control} name="is_active" render={({ field }) => (
-                                    <FormItem className="flex items-center gap-2">
-                                        <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                                        <FormLabel className="!mt-0">Produk Aktif</FormLabel>
-                                    </FormItem>
-                                )} />
+                                <FormField
+                                    control={form.control}
+                                    name="is_active"
+                                    render={({ field }) => (
+                                        <FormItem className="flex items-center gap-2">
+                                            <FormControl>
+                                                <Checkbox
+                                                    checked={field.value}
+                                                    onCheckedChange={
+                                                        field.onChange
+                                                    }
+                                                />
+                                            </FormControl>
+                                            <FormLabel className="!mt-0">
+                                                Produk Aktif
+                                            </FormLabel>
+                                        </FormItem>
+                                    )}
+                                />
 
                                 <div className="flex gap-4">
-                                    <Button type="submit" disabled={form.formState.isSubmitting}>
-                                        {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    <Button
+                                        type="submit"
+                                        disabled={form.formState.isSubmitting}
+                                    >
+                                        {form.formState.isSubmitting && (
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        )}
                                         Simpan Perubahan
                                     </Button>
-                                    <Button type="button" variant="outline" onClick={() => router.get('/products')}>Batal</Button>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => router.get('/products')}
+                                    >
+                                        Batal
+                                    </Button>
                                 </div>
                             </form>
                         </Form>
@@ -230,4 +407,3 @@ export default function ProductEdit({ product, categories }: Props) {
         </AppLayout>
     );
 }
-
