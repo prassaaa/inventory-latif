@@ -278,7 +278,7 @@ function ProductCard({ product }: { product: ProductWithCategory }) {
                         <img
                             src={product.image_url}
                             alt={product.name}
-                            className="max-h-full max-w-full object-contain"
+                            className="h-full w-full object-cover"
                         />
                     ) : (
                         <Box className="h-16 w-16 text-gray-300 dark:text-zinc-700" />
