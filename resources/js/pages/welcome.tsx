@@ -271,9 +271,9 @@ function ProductCard({ product }: { product: ProductWithCategory }) {
     return (
         <div className="group relative flex flex-col overflow-hidden rounded-lg border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-300 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-white dark:bg-black dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] dark:hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">
             {/* Image & Main Info */}
-            <div className="flex h-full flex-col sm:flex-row">
+            <div className="flex h-full flex-col">
                 {/* Image Section */}
-                <div className="relative flex aspect-square w-full items-center justify-center border-b-2 border-black bg-white p-4 transition-colors duration-300 sm:aspect-auto sm:w-1/3 sm:border-r-2 sm:border-b-0 dark:border-white dark:bg-black">
+                <div className="relative flex aspect-square w-full items-center justify-center border-b-2 border-black bg-white p-4 transition-colors duration-300 dark:border-white dark:bg-black">
                     {product.image_url ? (
                         <img
                             src={product.image_url}
