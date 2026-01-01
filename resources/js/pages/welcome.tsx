@@ -273,7 +273,7 @@ function ProductCard({ product }: { product: ProductWithCategory }) {
             {/* Image & Main Info */}
             <div className="flex h-full flex-col">
                 {/* Image Section */}
-                <div className="relative flex aspect-square w-full items-center justify-center border-b-2 border-black bg-white p-4 transition-colors duration-300 dark:border-white dark:bg-black">
+                <div className="relative flex h-64 w-full items-center justify-center border-b-2 border-black bg-white p-4 transition-colors duration-300 dark:border-white dark:bg-black">
                     {product.image_url ? (
                         <img
                             src={product.image_url}
