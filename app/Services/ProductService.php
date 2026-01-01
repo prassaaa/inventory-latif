@@ -4,43 +4,26 @@ namespace App\Services;
 
 use App\Models\Product;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
-use Intervention\Image\Laravel\Facades\Image;
 
 class ProductService
 {
-    private const IMAGE_PATH = 'products';
-    private const IMAGE_MAX_WIDTH = 800;
-    private const IMAGE_MAX_HEIGHT = 800;
-    private const THUMBNAIL_WIDTH = 200;
-    private const THUMBNAIL_HEIGHT = 200;
+    private const IMAGE_FOLDER = 'products';
+    private const IMAGE_PREFIX = 'product_';
+
+    public function __construct(
+        private ImageService $imageService
+    ) {}
 
     /**
      * Upload product image and create thumbnail
      */
     public function uploadImage(UploadedFile $file): string
     {
-        $filename = $this->generateFilename($file);
-
-        // Resize and store main image
-        $image = Image::read($file);
-        $image->scaleDown(self::IMAGE_MAX_WIDTH, self::IMAGE_MAX_HEIGHT);
-
-        Storage::disk('public')->put(
-            self::IMAGE_PATH . '/' . $filename,
-            $image->toJpeg(85)
+        return $this->imageService->uploadWithThumbnail(
+            $file,
+            self::IMAGE_FOLDER,
+            self::IMAGE_PREFIX
         );
-
-        // Create thumbnail
-        $thumbnail = Image::read($file);
-        $thumbnail->cover(self::THUMBNAIL_WIDTH, self::THUMBNAIL_HEIGHT);
-
-        Storage::disk('public')->put(
-            self::IMAGE_PATH . '/thumbnails/' . $filename,
-            $thumbnail->toJpeg(80)
-        );
-
-        return $filename;
     }
 
     /**
@@ -48,12 +31,7 @@ class ProductService
      */
     public function deleteImage(?string $filename): void
     {
-        if (!$filename) {
-            return;
-        }
-
-        Storage::disk('public')->delete(self::IMAGE_PATH . '/' . $filename);
-        Storage::disk('public')->delete(self::IMAGE_PATH . '/thumbnails/' . $filename);
+        $this->imageService->deleteWithThumbnail(self::IMAGE_FOLDER, $filename);
     }
 
     /**
@@ -73,23 +51,11 @@ class ProductService
     }
 
     /**
-     * Generate unique filename
-     */
-    private function generateFilename(UploadedFile $file): string
-    {
-        return uniqid('product_') . '_' . time() . '.jpg';
-    }
-
-    /**
      * Get image URL
      */
     public function getImageUrl(?string $filename): ?string
     {
-        if (!$filename) {
-            return null;
-        }
-
-        return Storage::disk('public')->url(self::IMAGE_PATH . '/' . $filename);
+        return $this->imageService->getUrl(self::IMAGE_FOLDER, $filename);
     }
 
     /**
@@ -97,11 +63,7 @@ class ProductService
      */
     public function getThumbnailUrl(?string $filename): ?string
     {
-        if (!$filename) {
-            return null;
-        }
-
-        return Storage::disk('public')->url(self::IMAGE_PATH . '/thumbnails/' . $filename);
+        return $this->imageService->getThumbnailUrl(self::IMAGE_FOLDER, $filename);
     }
 
     /**

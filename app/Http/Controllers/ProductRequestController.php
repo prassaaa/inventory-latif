@@ -9,20 +9,23 @@ use App\Http\Requests\StoreProductRequestRequest;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductRequest;
+use App\Services\ImageService;
 use App\Services\ProductService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
-use Intervention\Image\Laravel\Facades\Image;
 
 class ProductRequestController extends Controller
 {
+    private const IMAGE_FOLDER = 'product-requests';
+    private const IMAGE_PREFIX = 'request_';
+
     public function __construct(
-        private ProductService $productService
+        private ProductService $productService,
+        private ImageService $imageService
     ) {
         $this->middleware('permission:view_product_requests')->only(['index', 'show']);
         $this->middleware('permission:create_product_request')->only(['create', 'store']);
@@ -169,27 +172,11 @@ class ProductRequestController extends Controller
      */
     private function uploadRequestImage($file): string
     {
-        $filename = uniqid('request_') . '_' . time() . '.jpg';
-
-        // Resize and store main image
-        $image = Image::read($file);
-        $image->scaleDown(800, 800);
-
-        Storage::disk('public')->put(
-            'product-requests/' . $filename,
-            $image->toJpeg(85)
+        return $this->imageService->uploadWithThumbnail(
+            $file,
+            self::IMAGE_FOLDER,
+            self::IMAGE_PREFIX
         );
-
-        // Create thumbnail
-        $thumbnail = Image::read($file);
-        $thumbnail->cover(200, 200);
-
-        Storage::disk('public')->put(
-            'product-requests/thumbnails/' . $filename,
-            $thumbnail->toJpeg(80)
-        );
-
-        return $filename;
     }
 
     /**
@@ -197,24 +184,11 @@ class ProductRequestController extends Controller
      */
     private function copyRequestImageToProduct(string $requestImage): string
     {
-        $newFilename = uniqid('product_') . '_' . time() . '.jpg';
-
-        // Copy main image
-        $requestImagePath = 'product-requests/' . $requestImage;
-        $productImagePath = 'products/' . $newFilename;
-
-        if (Storage::disk('public')->exists($requestImagePath)) {
-            Storage::disk('public')->copy($requestImagePath, $productImagePath);
-        }
-
-        // Copy thumbnail
-        $requestThumbnailPath = 'product-requests/thumbnails/' . $requestImage;
-        $productThumbnailPath = 'products/thumbnails/' . $newFilename;
-
-        if (Storage::disk('public')->exists($requestThumbnailPath)) {
-            Storage::disk('public')->copy($requestThumbnailPath, $productThumbnailPath);
-        }
-
-        return $newFilename;
+        return $this->imageService->copyWithThumbnail(
+            self::IMAGE_FOLDER,
+            'products',
+            $requestImage,
+            'product_'
+        );
     }
 }
