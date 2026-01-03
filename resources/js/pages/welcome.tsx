@@ -13,6 +13,8 @@ import { Head, Link, router } from '@inertiajs/react';
 import {
     ArrowRight,
     Box,
+    ChevronLeft,
+    ChevronRight,
     Loader2,
     MapPin,
     Search,
@@ -262,6 +264,9 @@ export default function Welcome({ products, categories }: Props) {
 
 // Accessible Product Card Component
 function ProductCard({ product }: { product: ProductWithCategory }) {
+    const [showGallery, setShowGallery] = useState(false);
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
     const totalStock =
         product.branch_stocks?.reduce(
             (sum, stock) => sum + stock.quantity,
@@ -270,145 +275,260 @@ function ProductCard({ product }: { product: ProductWithCategory }) {
     const hasBranchStock =
         product.branch_stocks && product.branch_stocks.length > 0;
 
-    return (
-        <div className="group relative flex flex-col overflow-hidden rounded-lg border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-300 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-white dark:bg-black dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] dark:hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">
-            {/* Image & Main Info */}
-            <div className="flex h-full flex-col">
-                {/* Image Section */}
-                <div className="relative flex h-64 w-full items-center justify-center border-b-2 border-black bg-white p-4 transition-colors duration-300 dark:border-white dark:bg-black">
-                    {(() => {
-                        const primaryImage =
-                            product.images?.find((img) => img.is_primary) ||
-                            product.images?.[0];
-                        const imageUrl =
-                            primaryImage?.image_url || product.image_url;
-                        return imageUrl ? (
-                            <img
-                                src={imageUrl}
-                                alt={product.name}
-                                className="h-full w-full object-cover"
-                            />
-                        ) : (
-                            <Box className="h-16 w-16 text-gray-300 dark:text-zinc-700" />
-                        );
-                    })()}
+    const allImages: Array<{
+        id: number;
+        image_url: string;
+        thumbnail_url: string;
+        is_primary: boolean;
+    }> =
+        product.images && product.images.length > 0
+            ? product.images
+            : product.image_url
+              ? [
+                    {
+                        id: 0,
+                        image_url: product.image_url,
+                        thumbnail_url:
+                            product.thumbnail_url || product.image_url,
+                        is_primary: true,
+                    },
+                ]
+              : [];
 
-                    {/* Image Count Badge */}
-                    {product.images && product.images.length > 1 && (
-                        <div className="absolute right-2 bottom-2 rounded bg-black/70 px-2 py-1 text-xs font-bold text-white">
-                            {product.images.length} Foto
-                        </div>
+    const openGallery = (index: number = 0) => {
+        setCurrentImageIndex(index);
+        setShowGallery(true);
+    };
+
+    const nextImage = () => {
+        setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
+    };
+
+    const prevImage = () => {
+        setCurrentImageIndex(
+            (prev) => (prev - 1 + allImages.length) % allImages.length,
+        );
+    };
+
+    return (
+        <>
+            {/* Image Gallery Modal */}
+            {showGallery && allImages.length > 0 && (
+                <div
+                    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4"
+                    onClick={() => setShowGallery(false)}
+                >
+                    {/* Close Button */}
+                    <button
+                        className="absolute top-4 right-4 rounded-full bg-white/20 p-2 text-white hover:bg-white/30"
+                        onClick={() => setShowGallery(false)}
+                    >
+                        <X className="h-6 w-6" />
+                    </button>
+
+                    {/* Image Counter */}
+                    <div className="absolute top-4 left-4 rounded bg-white/20 px-3 py-1 text-sm font-bold text-white">
+                        {currentImageIndex + 1} / {allImages.length}
+                    </div>
+
+                    {/* Main Image */}
+                    <img
+                        src={allImages[currentImageIndex]?.image_url}
+                        alt={`${product.name} - Foto ${currentImageIndex + 1}`}
+                        className="max-h-[80vh] max-w-[90vw] rounded-lg object-contain"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+
+                    {/* Navigation Arrows */}
+                    {allImages.length > 1 && (
+                        <>
+                            <button
+                                className="absolute left-4 rounded-full bg-white/20 p-3 text-white hover:bg-white/30"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    prevImage();
+                                }}
+                            >
+                                <ChevronLeft className="h-8 w-8" />
+                            </button>
+                            <button
+                                className="absolute right-4 rounded-full bg-white/20 p-3 text-white hover:bg-white/30"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    nextImage();
+                                }}
+                            >
+                                <ChevronRight className="h-8 w-8" />
+                            </button>
+                        </>
                     )}
 
-                    {/* Category Label Overlay */}
-                    {product.category && (
-                        <div className="absolute top-0 left-0 bg-black px-2 py-1 text-xs font-bold text-white uppercase transition-colors duration-300 dark:bg-white dark:text-black">
-                            {product.category.name}
+                    {/* Thumbnails */}
+                    {allImages.length > 1 && (
+                        <div
+                            className="absolute bottom-4 flex gap-2"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {allImages.map((img, idx) => (
+                                <button
+                                    key={img.id || idx}
+                                    onClick={() => setCurrentImageIndex(idx)}
+                                    className={`h-16 w-16 overflow-hidden rounded border-2 transition-all ${currentImageIndex === idx ? 'scale-110 border-white' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                                >
+                                    <img
+                                        src={img.thumbnail_url || img.image_url}
+                                        alt={`Thumbnail ${idx + 1}`}
+                                        className="h-full w-full object-cover"
+                                    />
+                                </button>
+                            ))}
                         </div>
                     )}
                 </div>
+            )}
 
-                {/* Content Section */}
-                <div className="flex flex-1 flex-col justify-between p-4 dark:bg-black">
-                    <div>
-                        <h3 className="mb-1 text-xl leading-tight font-bold text-black transition-colors duration-300 dark:text-white">
-                            {product.name}
-                        </h3>
-                        <p className="mb-3 inline-block border border-gray-300 bg-gray-100 px-1 font-mono text-sm text-gray-600 transition-colors duration-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-400">
-                            KODE: {product.sku}
-                        </p>
+            <div className="group relative flex flex-col overflow-hidden rounded-lg border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all duration-300 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-white dark:bg-black dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] dark:hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">
+                {/* Image & Main Info */}
+                <div className="flex h-full flex-col">
+                    {/* Image Section - Clickable */}
+                    <div
+                        className="relative flex h-64 w-full cursor-pointer items-center justify-center border-b-2 border-black bg-white p-4 transition-colors duration-300 dark:border-white dark:bg-black"
+                        onClick={() => allImages.length > 0 && openGallery(0)}
+                    >
+                        {(() => {
+                            const primaryImage =
+                                product.images?.find((img) => img.is_primary) ||
+                                product.images?.[0];
+                            const imageUrl =
+                                primaryImage?.image_url || product.image_url;
+                            return imageUrl ? (
+                                <img
+                                    src={imageUrl}
+                                    alt={product.name}
+                                    className="h-full w-full object-cover"
+                                />
+                            ) : (
+                                <Box className="h-16 w-16 text-gray-300 dark:text-zinc-700" />
+                            );
+                        })()}
 
-                        {/* Attributes */}
-                        {(product.color || product.size) && (
-                            <div className="mb-3 flex gap-2">
-                                {product.color && (
-                                    <span className="rounded border border-black bg-white px-2 py-0.5 text-sm font-medium text-black transition-colors duration-300 dark:border-white dark:bg-black dark:text-white">
-                                        Warna: {product.color}
-                                    </span>
-                                )}
-                                {product.size && (
-                                    <span className="rounded border border-black bg-white px-2 py-0.5 text-sm font-medium text-black transition-colors duration-300 dark:border-white dark:bg-black dark:text-white">
-                                        Ukuran: {product.size}
-                                    </span>
-                                )}
+                        {/* Image Count Badge */}
+                        {product.images && product.images.length > 1 && (
+                            <div className="absolute right-2 bottom-2 rounded bg-black/70 px-2 py-1 text-xs font-bold text-white">
+                                📷 {product.images.length} Foto
                             </div>
                         )}
 
-                        {/* Description */}
-                        {product.description && (
-                            <p className="mb-2 line-clamp-2 text-sm text-gray-600 dark:text-gray-400">
-                                {product.description}
-                            </p>
-                        )}
-
-                        {/* Location Description */}
-                        {product.location_description && (
-                            <div className="mb-2 flex items-start gap-1 text-sm">
-                                <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0 text-gray-500 dark:text-gray-400" />
-                                <span className="line-clamp-2 text-gray-600 dark:text-gray-400">
-                                    {product.location_description}
-                                </span>
+                        {/* Category Label Overlay */}
+                        {product.category && (
+                            <div className="absolute top-0 left-0 bg-black px-2 py-1 text-xs font-bold text-white uppercase transition-colors duration-300 dark:bg-white dark:text-black">
+                                {product.category.name}
                             </div>
                         )}
                     </div>
 
-                    <div className="mt-4">
-                        <Separator className="my-2 bg-black transition-colors duration-300 dark:bg-white" />
+                    {/* Content Section */}
+                    <div className="flex flex-1 flex-col justify-between p-4 dark:bg-black">
+                        <div>
+                            <h3 className="mb-1 text-xl leading-tight font-bold text-black transition-colors duration-300 dark:text-white">
+                                {product.name}
+                            </h3>
+                            <p className="mb-3 inline-block border border-gray-300 bg-gray-100 px-1 font-mono text-sm text-gray-600 transition-colors duration-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-gray-400">
+                                KODE: {product.sku}
+                            </p>
 
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-xs font-bold text-gray-500 uppercase transition-colors duration-300 dark:text-gray-400">
-                                    HARGA SATUAN
-                                </p>
-                                <p className="text-2xl font-extrabold text-black transition-colors duration-300 dark:text-white">
-                                    {formatCurrency(product.price)}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Stock Status Box - Always Light/Green for visibility */}
-                        <div
-                            className={`mt-3 rounded border-2 p-2 transition-colors duration-300 ${totalStock > 0 ? 'border-black bg-green-50' : 'border-red-600 bg-red-50'}`}
-                        >
-                            <div className="mb-1 flex items-center justify-between">
-                                <span className="text-sm font-bold text-black uppercase">
-                                    Total Stok:
-                                </span>
-                                <span
-                                    className={`text-lg font-black ${totalStock > 0 ? 'text-black' : 'text-red-600'}`}
-                                >
-                                    {totalStock > 0
-                                        ? `${totalStock} Unit`
-                                        : 'HABIS'}
-                                </span>
-                            </div>
-
-                            {/* Branch Details */}
-                            {hasBranchStock && (
-                                <div className="mt-2 space-y-1 border-t border-black/20 pt-2">
-                                    {product.branch_stocks?.map(
-                                        (stock) =>
-                                            stock.quantity > 0 && (
-                                                <div
-                                                    key={stock.id}
-                                                    className="flex items-center justify-between text-sm"
-                                                >
-                                                    <span className="flex items-center gap-1 font-medium text-black">
-                                                        <MapPin className="h-3 w-3" />
-                                                        {stock.branch.name}
-                                                    </span>
-                                                    <span className="rounded-sm border border-black bg-white px-1.5 font-bold text-black">
-                                                        {stock.quantity}
-                                                    </span>
-                                                </div>
-                                            ),
+                            {/* Attributes */}
+                            {(product.color || product.size) && (
+                                <div className="mb-3 flex gap-2">
+                                    {product.color && (
+                                        <span className="rounded border border-black bg-white px-2 py-0.5 text-sm font-medium text-black transition-colors duration-300 dark:border-white dark:bg-black dark:text-white">
+                                            Warna: {product.color}
+                                        </span>
+                                    )}
+                                    {product.size && (
+                                        <span className="rounded border border-black bg-white px-2 py-0.5 text-sm font-medium text-black transition-colors duration-300 dark:border-white dark:bg-black dark:text-white">
+                                            Ukuran: {product.size}
+                                        </span>
                                     )}
                                 </div>
                             )}
+
+                            {/* Description */}
+                            {product.description && (
+                                <p className="mb-2 line-clamp-2 text-sm text-gray-600 dark:text-gray-400">
+                                    {product.description}
+                                </p>
+                            )}
+
+                            {/* Location Description */}
+                            {product.location_description && (
+                                <div className="mb-2 flex items-start gap-1 text-sm">
+                                    <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0 text-gray-500 dark:text-gray-400" />
+                                    <span className="line-clamp-2 text-gray-600 dark:text-gray-400">
+                                        {product.location_description}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mt-4">
+                            <Separator className="my-2 bg-black transition-colors duration-300 dark:bg-white" />
+
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-bold text-gray-500 uppercase transition-colors duration-300 dark:text-gray-400">
+                                        HARGA SATUAN
+                                    </p>
+                                    <p className="text-2xl font-extrabold text-black transition-colors duration-300 dark:text-white">
+                                        {formatCurrency(product.price)}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Stock Status Box - Always Light/Green for visibility */}
+                            <div
+                                className={`mt-3 rounded border-2 p-2 transition-colors duration-300 ${totalStock > 0 ? 'border-black bg-green-50' : 'border-red-600 bg-red-50'}`}
+                            >
+                                <div className="mb-1 flex items-center justify-between">
+                                    <span className="text-sm font-bold text-black uppercase">
+                                        Total Stok:
+                                    </span>
+                                    <span
+                                        className={`text-lg font-black ${totalStock > 0 ? 'text-black' : 'text-red-600'}`}
+                                    >
+                                        {totalStock > 0
+                                            ? `${totalStock} Unit`
+                                            : 'HABIS'}
+                                    </span>
+                                </div>
+
+                                {/* Branch Details */}
+                                {hasBranchStock && (
+                                    <div className="mt-2 space-y-1 border-t border-black/20 pt-2">
+                                        {product.branch_stocks?.map(
+                                            (stock) =>
+                                                stock.quantity > 0 && (
+                                                    <div
+                                                        key={stock.id}
+                                                        className="flex items-center justify-between text-sm"
+                                                    >
+                                                        <span className="flex items-center gap-1 font-medium text-black">
+                                                            <MapPin className="h-3 w-3" />
+                                                            {stock.branch.name}
+                                                        </span>
+                                                        <span className="rounded-sm border border-black bg-white px-1.5 font-bold text-black">
+                                                            {stock.quantity}
+                                                        </span>
+                                                    </div>
+                                                ),
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 }
