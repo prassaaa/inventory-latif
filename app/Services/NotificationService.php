@@ -2,10 +2,8 @@
 
 namespace App\Services;
 
-use App\Enums\ProductRequestStatus;
 use App\Enums\TransferStatus;
 use App\Models\BranchStock;
-use App\Models\ProductRequest;
 use App\Models\Transfer;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -18,17 +16,16 @@ class NotificationService
     public function getNotifications(): array
     {
         $user = Auth::user();
-        
+
         if (!$user) {
             return $this->emptyNotifications();
         }
 
         // Cache for 2 minutes to improve performance
         $cacheKey = "notifications.user.{$user->id}";
-        
+
         return Cache::remember($cacheKey, 120, function () use ($user) {
             $notifications = [
-                'productRequests' => 0,
                 'transfers' => 0,
                 'lowStock' => 0,
                 'total' => 0,
@@ -36,7 +33,6 @@ class NotificationService
 
             // Super Admin notifications
             if ($user->hasRole('super_admin')) {
-                $notifications['productRequests'] = $this->getPendingProductRequestsCount();
                 $notifications['transfers'] = $this->getPendingTransfersCount();
             }
 
@@ -48,21 +44,12 @@ class NotificationService
 
             // Calculate total
             $notifications['total'] = array_sum([
-                $notifications['productRequests'],
                 $notifications['transfers'],
                 $notifications['lowStock'],
             ]);
 
             return $notifications;
         });
-    }
-
-    /**
-     * Get count of pending product requests
-     */
-    private function getPendingProductRequestsCount(): int
-    {
-        return ProductRequest::where('status', ProductRequestStatus::PENDING)->count();
     }
 
     /**
@@ -107,7 +94,7 @@ class NotificationService
     public function clearCache(?int $userId = null): void
     {
         $userId = $userId ?? Auth::id();
-        
+
         if ($userId) {
             Cache::forget("notifications.user.{$userId}");
         }
@@ -128,11 +115,11 @@ class NotificationService
     private function emptyNotifications(): array
     {
         return [
-            'productRequests' => 0,
             'transfers' => 0,
             'lowStock' => 0,
             'total' => 0,
         ];
     }
 }
+
 
