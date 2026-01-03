@@ -18,7 +18,8 @@ Route::get('/', function () {
         ->active()
         ->with([
             'category:id,name',
-            'branchStocks.branch:id,name,code'
+            'branchStocks.branch:id,name,code',
+            'images'
         ])
         ->latest()
         ->paginate(12);

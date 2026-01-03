@@ -7,6 +7,7 @@ import type {
     Category,
     PaginatedData,
     Product,
+    ProductImage,
 } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import {
@@ -23,9 +24,10 @@ import { useEffect, useState } from 'react';
 
 // Simplified Interface for cleaner code
 interface ProductWithCategory
-    extends Omit<Product, 'category' | 'branch_stocks'> {
+    extends Omit<Product, 'category' | 'branch_stocks' | 'images'> {
     category: Category | null;
     branch_stocks?: (BranchStock & { branch: Branch })[];
+    images?: ProductImage[];
 }
 
 interface Props {
@@ -274,14 +276,28 @@ function ProductCard({ product }: { product: ProductWithCategory }) {
             <div className="flex h-full flex-col">
                 {/* Image Section */}
                 <div className="relative flex h-64 w-full items-center justify-center border-b-2 border-black bg-white p-4 transition-colors duration-300 dark:border-white dark:bg-black">
-                    {product.image_url ? (
-                        <img
-                            src={product.image_url}
-                            alt={product.name}
-                            className="h-full w-full object-cover"
-                        />
-                    ) : (
-                        <Box className="h-16 w-16 text-gray-300 dark:text-zinc-700" />
+                    {(() => {
+                        const primaryImage =
+                            product.images?.find((img) => img.is_primary) ||
+                            product.images?.[0];
+                        const imageUrl =
+                            primaryImage?.image_url || product.image_url;
+                        return imageUrl ? (
+                            <img
+                                src={imageUrl}
+                                alt={product.name}
+                                className="h-full w-full object-cover"
+                            />
+                        ) : (
+                            <Box className="h-16 w-16 text-gray-300 dark:text-zinc-700" />
+                        );
+                    })()}
+
+                    {/* Image Count Badge */}
+                    {product.images && product.images.length > 1 && (
+                        <div className="absolute right-2 bottom-2 rounded bg-black/70 px-2 py-1 text-xs font-bold text-white">
+                            {product.images.length} Foto
+                        </div>
                     )}
 
                     {/* Category Label Overlay */}
@@ -315,6 +331,23 @@ function ProductCard({ product }: { product: ProductWithCategory }) {
                                         Ukuran: {product.size}
                                     </span>
                                 )}
+                            </div>
+                        )}
+
+                        {/* Description */}
+                        {product.description && (
+                            <p className="mb-2 line-clamp-2 text-sm text-gray-600 dark:text-gray-400">
+                                {product.description}
+                            </p>
+                        )}
+
+                        {/* Location Description */}
+                        {product.location_description && (
+                            <div className="mb-2 flex items-start gap-1 text-sm">
+                                <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0 text-gray-500 dark:text-gray-400" />
+                                <span className="line-clamp-2 text-gray-600 dark:text-gray-400">
+                                    {product.location_description}
+                                </span>
                             </div>
                         )}
                     </div>
