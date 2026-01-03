@@ -164,6 +164,16 @@ export default function ProductShow({ product }: Props) {
                                     </p>
                                 </div>
                             )}
+                            {product.location_description && (
+                                <div>
+                                    <span className="text-muted-foreground">
+                                        Deskripsi Lokasi
+                                    </span>
+                                    <p className="mt-1 text-sm">
+                                        {product.location_description}
+                                    </p>
+                                </div>
+                            )}
                             <div className="mt-4 border-t pt-4">
                                 <div className="flex items-center justify-between">
                                     <span className="text-muted-foreground">

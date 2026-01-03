@@ -128,6 +128,7 @@ export interface Product {
     category_id: number;
     category?: Category;
     description: string | null;
+    location_description: string | null;
     color: string | null;
     size: string | null;
     price: number;

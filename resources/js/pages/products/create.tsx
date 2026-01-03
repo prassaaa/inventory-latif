@@ -40,6 +40,7 @@ const productSchema = z.object({
     name: z.string().min(1, 'Nama produk wajib diisi').max(100),
     category_id: z.string().min(1, 'Kategori wajib dipilih'),
     description: z.string().max(1000).optional().nullable(),
+    location_description: z.string().max(500).optional().nullable(),
     color: z.string().max(50).optional().nullable(),
     size: z.string().max(50).optional().nullable(),
     price: z.number().min(0, 'Harga tidak boleh negatif'),
@@ -74,6 +75,7 @@ export default function ProductCreate({ categories, maxImages = 5 }: Props) {
             name: '',
             category_id: '',
             description: '',
+            location_description: '',
             color: '',
             size: '',
             price: undefined,
@@ -324,6 +326,29 @@ export default function ProductCreate({ categories, maxImages = 5 }: Props) {
                                                     value={field.value ?? ''}
                                                 />
                                             </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={form.control}
+                                    name="location_description"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>
+                                                Deskripsi Lokasi
+                                            </FormLabel>
+                                            <FormControl>
+                                                <Textarea
+                                                    placeholder="Lokasi penyimpanan produk (rak, gudang, dll)"
+                                                    {...field}
+                                                    value={field.value ?? ''}
+                                                />
+                                            </FormControl>
+                                            <FormDescription>
+                                                Maks 500 karakter
+                                            </FormDescription>
                                             <FormMessage />
                                         </FormItem>
                                     )}

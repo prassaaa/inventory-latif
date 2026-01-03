@@ -23,6 +23,7 @@ class StoreProductRequest extends FormRequest
             'images' => 'nullable|array|max:5',
             'images.*' => 'image|max:2048',
             'description' => 'nullable|string',
+            'location_description' => 'nullable|string|max:500',
             'is_active' => 'boolean',
         ];
     }

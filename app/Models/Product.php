@@ -18,6 +18,7 @@ class Product extends Model
         'price',
         'image',
         'description',
+        'location_description',
         'is_active',
         'created_by',
         'updated_by',
