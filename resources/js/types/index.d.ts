@@ -109,6 +109,18 @@ export interface Category {
 // Product Types
 // ============================================
 
+export interface ProductImage {
+    id: number;
+    product_id: number;
+    image: string;
+    image_url: string;
+    thumbnail_url: string;
+    sort_order: number;
+    is_primary: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
 export interface Product {
     id: number;
     sku: string;
@@ -127,6 +139,7 @@ export interface Product {
     updated_by: number | null;
     creator?: User | null;
     updater?: User | null;
+    images?: ProductImage[];
     branch_stocks?: BranchStock[];
     created_at: string;
     updated_at: string;

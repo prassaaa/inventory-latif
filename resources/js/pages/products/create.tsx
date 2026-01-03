@@ -31,7 +31,7 @@ import { toast } from '@/lib/toast';
 import type { BreadcrumbItem, Category } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Head, router } from '@inertiajs/react';
-import { Loader2, Upload, X } from 'lucide-react';
+import { Loader2, Plus, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -48,8 +48,14 @@ const productSchema = z.object({
 
 type ProductFormValues = z.infer<typeof productSchema>;
 
+interface ImagePreview {
+    file: File;
+    preview: string;
+}
+
 interface Props {
     categories: Category[];
+    maxImages: number;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -58,9 +64,8 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Tambah Produk', href: '/products/create' },
 ];
 
-export default function ProductCreate({ categories }: Props) {
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const [imageFile, setImageFile] = useState<File | null>(null);
+export default function ProductCreate({ categories, maxImages = 5 }: Props) {
+    const [images, setImages] = useState<ImagePreview[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const form = useForm<ProductFormValues>({
@@ -77,24 +82,35 @@ export default function ProductCreate({ categories }: Props) {
     });
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setImageFile(file);
-            setImagePreview(URL.createObjectURL(file));
+        const files = e.target.files;
+        if (!files) return;
+
+        const newImages: ImagePreview[] = [];
+        const remainingSlots = maxImages - images.length;
+
+        for (let i = 0; i < Math.min(files.length, remainingSlots); i++) {
+            const file = files[i];
+            newImages.push({
+                file,
+                preview: URL.createObjectURL(file),
+            });
         }
+
+        setImages([...images, ...newImages]);
+        if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
-    const removeImage = () => {
-        setImageFile(null);
-        setImagePreview(null);
-        if (fileInputRef.current) fileInputRef.current.value = '';
+    const removeImage = (index: number) => {
+        const newImages = [...images];
+        URL.revokeObjectURL(newImages[index].preview);
+        newImages.splice(index, 1);
+        setImages(newImages);
     };
 
     const onSubmit = (data: ProductFormValues) => {
         const formData = new FormData();
         Object.entries(data).forEach(([key, value]) => {
             if (value !== null && value !== undefined) {
-                // Convert boolean to "1"/"0" for Laravel
                 if (typeof value === 'boolean') {
                     formData.append(key, value ? '1' : '0');
                 } else {
@@ -102,7 +118,10 @@ export default function ProductCreate({ categories }: Props) {
                 }
             }
         });
-        if (imageFile) formData.append('image', imageFile);
+
+        images.forEach((img) => {
+            formData.append('images[]', img.file);
+        });
 
         router.post('/products', formData, {
             forceFormData: true,
@@ -310,42 +329,55 @@ export default function ProductCreate({ categories }: Props) {
                                     )}
                                 />
 
-                                {/* Image Upload - will continue in next part */}
+                                {/* Multiple Image Upload */}
                                 <div>
                                     <FormLabel>Gambar Produk</FormLabel>
-                                    <div className="mt-2">
-                                        {imagePreview ? (
-                                            <div className="relative inline-block">
+                                    <div className="mt-2 flex flex-wrap gap-3">
+                                        {images.map((img, index) => (
+                                            <div
+                                                key={index}
+                                                className="relative"
+                                            >
                                                 <img
-                                                    src={imagePreview}
-                                                    alt="Preview"
-                                                    className="h-32 w-32 rounded object-cover"
+                                                    src={img.preview}
+                                                    alt={`Preview ${index + 1}`}
+                                                    className="h-24 w-24 rounded border object-cover"
                                                 />
                                                 <Button
                                                     type="button"
                                                     variant="destructive"
                                                     size="icon"
                                                     className="absolute -top-2 -right-2 h-6 w-6"
-                                                    onClick={removeImage}
+                                                    onClick={() =>
+                                                        removeImage(index)
+                                                    }
                                                 >
                                                     <X className="h-4 w-4" />
                                                 </Button>
+                                                {index === 0 && (
+                                                    <span className="absolute bottom-1 left-1 rounded bg-primary px-1.5 py-0.5 text-[10px] font-medium text-primary-foreground">
+                                                        Utama
+                                                    </span>
+                                                )}
                                             </div>
-                                        ) : (
-                                            <label className="flex h-32 w-32 cursor-pointer items-center justify-center rounded border-2 border-dashed hover:bg-muted/50">
-                                                <Upload className="h-8 w-8 text-muted-foreground" />
+                                        ))}
+                                        {images.length < maxImages && (
+                                            <label className="flex h-24 w-24 cursor-pointer items-center justify-center rounded border-2 border-dashed hover:bg-muted/50">
+                                                <Plus className="h-6 w-6 text-muted-foreground" />
                                                 <input
                                                     ref={fileInputRef}
                                                     type="file"
                                                     accept="image/*"
+                                                    multiple
                                                     className="hidden"
                                                     onChange={handleImageChange}
                                                 />
                                             </label>
                                         )}
                                     </div>
-                                    <FormDescription>
-                                        Format: JPG, PNG. Max 2MB
+                                    <FormDescription className="mt-2">
+                                        Maks {maxImages} gambar. Format: JPG,
+                                        PNG. Max 2MB per gambar
                                     </FormDescription>
                                 </div>
 

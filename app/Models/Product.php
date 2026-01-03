@@ -64,6 +64,17 @@ class Product extends Model
         return $this->belongsTo(User::class, 'updated_by');
     }
 
+    public function images(): HasMany
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order');
+    }
+
+    public function primaryImage(): ?ProductImage
+    {
+        return $this->images()->where('is_primary', true)->first()
+            ?? $this->images()->first();
+    }
+
     public function branchStocks(): HasMany
     {
         return $this->hasMany(BranchStock::class);

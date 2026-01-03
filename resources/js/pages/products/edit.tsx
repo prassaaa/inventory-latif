@@ -28,10 +28,10 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { toast } from '@/lib/toast';
-import type { BreadcrumbItem, Category, Product } from '@/types';
+import type { BreadcrumbItem, Category, Product, ProductImage } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Head, router } from '@inertiajs/react';
-import { Loader2, Upload, X } from 'lucide-react';
+import { Loader2, Plus, Star, Trash2, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -49,12 +49,22 @@ const productSchema = z.object({
 
 type ProductFormValues = z.infer<typeof productSchema>;
 
-interface Props {
-    product: Product;
-    categories: Category[];
+interface ImagePreview {
+    file: File;
+    preview: string;
 }
 
-export default function ProductEdit({ product, categories }: Props) {
+interface Props {
+    product: Product & { images?: ProductImage[] };
+    categories: Category[];
+    maxImages: number;
+}
+
+export default function ProductEdit({
+    product,
+    categories,
+    maxImages = 5,
+}: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Produk', href: '/products' },
@@ -62,10 +72,8 @@ export default function ProductEdit({ product, categories }: Props) {
         { title: 'Edit', href: `/products/${product.id}/edit` },
     ];
 
-    const [imagePreview, setImagePreview] = useState<string | null>(
-        product.image_url || null,
-    );
-    const [imageFile, setImageFile] = useState<File | null>(null);
+    const existingImages = product.images || [];
+    const [newImages, setNewImages] = useState<ImagePreview[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const form = useForm<ProductFormValues>({
@@ -82,18 +90,58 @@ export default function ProductEdit({ product, categories }: Props) {
         },
     });
 
+    const totalImages = existingImages.length + newImages.length;
+    const canAddMore = totalImages < maxImages;
+
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setImageFile(file);
-            setImagePreview(URL.createObjectURL(file));
+        const files = e.target.files;
+        if (!files) return;
+
+        const remainingSlots = maxImages - totalImages;
+        const newImagesArray: ImagePreview[] = [];
+
+        for (let i = 0; i < Math.min(files.length, remainingSlots); i++) {
+            const file = files[i];
+            newImagesArray.push({
+                file,
+                preview: URL.createObjectURL(file),
+            });
         }
+
+        setNewImages([...newImages, ...newImagesArray]);
+        if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
-    const removeImage = () => {
-        setImageFile(null);
-        setImagePreview(null);
-        if (fileInputRef.current) fileInputRef.current.value = '';
+    const removeNewImage = (index: number) => {
+        const updated = [...newImages];
+        URL.revokeObjectURL(updated[index].preview);
+        updated.splice(index, 1);
+        setNewImages(updated);
+    };
+
+    const deleteExistingImage = (imageId: number) => {
+        router.delete(`/products/${product.id}/images/${imageId}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Gambar Dihapus', 'Gambar berhasil dihapus');
+            },
+        });
+    };
+
+    const setPrimaryImage = (imageId: number) => {
+        router.post(
+            `/products/${product.id}/images/${imageId}/primary`,
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success(
+                        'Gambar Utama',
+                        'Gambar utama berhasil diubah',
+                    );
+                },
+            },
+        );
     };
 
     const onSubmit = (data: ProductFormValues) => {
@@ -101,7 +149,6 @@ export default function ProductEdit({ product, categories }: Props) {
         formData.append('_method', 'PUT');
         Object.entries(data).forEach(([key, value]) => {
             if (value !== null && value !== undefined) {
-                // Convert boolean to "1"/"0" for Laravel
                 if (typeof value === 'boolean') {
                     formData.append(key, value ? '1' : '0');
                 } else {
@@ -109,7 +156,10 @@ export default function ProductEdit({ product, categories }: Props) {
                 }
             }
         });
-        if (imageFile) formData.append('image', imageFile);
+
+        newImages.forEach((img) => {
+            formData.append('images[]', img.file);
+        });
 
         router.post(`/products/${product.id}`, formData, {
             forceFormData: true,
@@ -323,41 +373,106 @@ export default function ProductEdit({ product, categories }: Props) {
                                     )}
                                 />
 
+                                {/* Multiple Image Upload */}
                                 <div>
                                     <FormLabel>Gambar Produk</FormLabel>
-                                    <div className="mt-2">
-                                        {imagePreview ? (
-                                            <div className="relative inline-block">
+                                    <div className="mt-2 flex flex-wrap gap-3">
+                                        {/* Existing images */}
+                                        {existingImages.map((img) => (
+                                            <div
+                                                key={img.id}
+                                                className="group relative"
+                                            >
                                                 <img
-                                                    src={imagePreview}
-                                                    alt="Preview"
-                                                    className="h-32 w-32 rounded object-cover"
+                                                    src={img.thumbnail_url}
+                                                    alt="Product"
+                                                    className="h-24 w-24 rounded border object-cover"
+                                                />
+                                                <div className="absolute inset-0 flex items-center justify-center gap-1 rounded bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+                                                    {!img.is_primary && (
+                                                        <Button
+                                                            type="button"
+                                                            variant="secondary"
+                                                            size="icon"
+                                                            className="h-7 w-7"
+                                                            onClick={() =>
+                                                                setPrimaryImage(
+                                                                    img.id,
+                                                                )
+                                                            }
+                                                            title="Set as primary"
+                                                        >
+                                                            <Star className="h-4 w-4" />
+                                                        </Button>
+                                                    )}
+                                                    <Button
+                                                        type="button"
+                                                        variant="destructive"
+                                                        size="icon"
+                                                        className="h-7 w-7"
+                                                        onClick={() =>
+                                                            deleteExistingImage(
+                                                                img.id,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                                {img.is_primary && (
+                                                    <span className="absolute bottom-1 left-1 rounded bg-primary px-1.5 py-0.5 text-[10px] font-medium text-primary-foreground">
+                                                        Utama
+                                                    </span>
+                                                )}
+                                            </div>
+                                        ))}
+
+                                        {/* New images to upload */}
+                                        {newImages.map((img, index) => (
+                                            <div
+                                                key={`new-${index}`}
+                                                className="relative"
+                                            >
+                                                <img
+                                                    src={img.preview}
+                                                    alt={`New ${index + 1}`}
+                                                    className="h-24 w-24 rounded border border-dashed border-primary object-cover"
                                                 />
                                                 <Button
                                                     type="button"
                                                     variant="destructive"
                                                     size="icon"
                                                     className="absolute -top-2 -right-2 h-6 w-6"
-                                                    onClick={removeImage}
+                                                    onClick={() =>
+                                                        removeNewImage(index)
+                                                    }
                                                 >
                                                     <X className="h-4 w-4" />
                                                 </Button>
+                                                <span className="absolute bottom-1 left-1 rounded bg-blue-500 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                                                    Baru
+                                                </span>
                                             </div>
-                                        ) : (
-                                            <label className="flex h-32 w-32 cursor-pointer items-center justify-center rounded border-2 border-dashed hover:bg-muted/50">
-                                                <Upload className="h-8 w-8 text-muted-foreground" />
+                                        ))}
+
+                                        {/* Add button */}
+                                        {canAddMore && (
+                                            <label className="flex h-24 w-24 cursor-pointer items-center justify-center rounded border-2 border-dashed hover:bg-muted/50">
+                                                <Plus className="h-6 w-6 text-muted-foreground" />
                                                 <input
                                                     ref={fileInputRef}
                                                     type="file"
                                                     accept="image/*"
+                                                    multiple
                                                     className="hidden"
                                                     onChange={handleImageChange}
                                                 />
                                             </label>
                                         )}
                                     </div>
-                                    <FormDescription>
-                                        Format: JPG, PNG. Max 2MB
+                                    <FormDescription className="mt-2">
+                                        {totalImages}/{maxImages} gambar.
+                                        Format: JPG, PNG. Max 2MB per gambar
                                     </FormDescription>
                                 </div>
 

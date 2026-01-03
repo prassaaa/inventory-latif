@@ -13,13 +13,13 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RolePermissionSeeder::class,
-            CategorySeeder::class,
-            BranchSeeder::class,
             UserSeeder::class,
-            ProductSeeder::class,
-            BranchStockSeeder::class,
-            TransferSeeder::class,
-            SaleSeeder::class,
+            //CategorySeeder::class,
+            //BranchSeeder::class,
+            //ProductSeeder::class,
+            //BranchStockSeeder::class,
+            //TransferSeeder::class,
+            //SaleSeeder::class,
         ]);
     }
 }

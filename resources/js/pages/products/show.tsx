@@ -24,6 +24,7 @@ import type {
     BreadcrumbItem,
     Category,
     Product,
+    ProductImage,
     User,
 } from '@/types';
 import { Head, Link } from '@inertiajs/react';
@@ -32,12 +33,13 @@ import { Package, Pencil } from 'lucide-react';
 interface ProductWithRelations
     extends Omit<
         Product,
-        'category' | 'branch_stocks' | 'creator' | 'updater'
+        'category' | 'branch_stocks' | 'creator' | 'updater' | 'images'
     > {
     category: Category | null;
     branch_stocks: (BranchStock & { branch: Branch })[];
     creator?: Pick<User, 'id' | 'name'> | null;
     updater?: Pick<User, 'id' | 'name'> | null;
+    images?: ProductImage[];
 }
 
 interface Props {
@@ -83,13 +85,39 @@ export default function ProductShow({ product }: Props) {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {product.image_url && (
+                            {/* Image Gallery */}
+                            {product.images && product.images.length > 0 ? (
+                                <div className="space-y-2">
+                                    <img
+                                        src={
+                                            product.images.find(
+                                                (img) => img.is_primary,
+                                            )?.image_url ||
+                                            product.images[0]?.image_url
+                                        }
+                                        alt={product.name}
+                                        className="aspect-square w-full rounded-lg object-cover"
+                                    />
+                                    {product.images.length > 1 && (
+                                        <div className="flex gap-2 overflow-x-auto pb-2">
+                                            {product.images.map((img) => (
+                                                <img
+                                                    key={img.id}
+                                                    src={img.thumbnail_url}
+                                                    alt="Product"
+                                                    className={`h-16 w-16 flex-shrink-0 rounded object-cover ${img.is_primary ? 'ring-2 ring-primary' : ''}`}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            ) : product.image_url ? (
                                 <img
                                     src={product.image_url}
                                     alt={product.name}
                                     className="aspect-square w-full rounded-lg object-cover"
                                 />
-                            )}
+                            ) : null}
                             <div className="flex items-center justify-between">
                                 <span className="text-muted-foreground">
                                     Status

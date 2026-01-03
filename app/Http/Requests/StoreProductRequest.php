@@ -20,7 +20,8 @@ class StoreProductRequest extends FormRequest
             'color' => 'nullable|string|max:50',
             'size' => 'nullable|string|max:50',
             'price' => 'required|numeric|min:0',
-            'image' => 'nullable|image|max:2048',
+            'images' => 'nullable|array|max:5',
+            'images.*' => 'image|max:2048',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
         ];
@@ -29,15 +30,16 @@ class StoreProductRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'sku.required' => 'SKU wajib diisi.',
             'sku.unique' => 'SKU sudah digunakan.',
             'name.required' => 'Nama produk wajib diisi.',
             'category_id.required' => 'Kategori wajib dipilih.',
             'category_id.exists' => 'Kategori tidak valid.',
             'price.required' => 'Harga wajib diisi.',
             'price.min' => 'Harga tidak boleh negatif.',
-            'image.image' => 'File harus berupa gambar.',
-            'image.max' => 'Ukuran gambar maksimal 2MB.',
+            'images.max' => 'Maksimal 5 gambar.',
+            'images.*.image' => 'File harus berupa gambar.',
+            'images.*.max' => 'Ukuran gambar maksimal 2MB.',
         ];
     }
 }
+

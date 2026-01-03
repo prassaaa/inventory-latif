@@ -14,15 +14,23 @@ import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
 import { toast } from '@/lib/toast';
 import { formatCurrency } from '@/lib/utils';
-import type { BreadcrumbItem, Category, PaginatedData, Product } from '@/types';
+import type {
+    BreadcrumbItem,
+    Category,
+    PaginatedData,
+    Product,
+    ProductImage,
+} from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Eye, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
-interface ProductWithCategory extends Omit<Product, 'category' | 'creator'> {
+interface ProductWithCategory
+    extends Omit<Product, 'category' | 'creator' | 'images'> {
     category: { id: number; name: string } | null;
     creator?: { id: number; name: string } | null;
+    images?: ProductImage[];
 }
 
 interface Props {
@@ -112,22 +120,29 @@ export default function ProductIndex({ products, categories, filters }: Props) {
         {
             accessorKey: 'name',
             header: 'Nama Produk',
-            cell: ({ row }) => (
-                <div className="flex items-center gap-3">
-                    {row.original.thumbnail_url ? (
-                        <img
-                            src={row.original.thumbnail_url}
-                            alt={row.original.name}
-                            className="h-10 w-10 rounded object-cover"
-                        />
-                    ) : (
-                        <div className="flex h-10 w-10 items-center justify-center rounded bg-muted text-xs text-muted-foreground">
-                            No img
-                        </div>
-                    )}
-                    <span className="font-medium">{row.original.name}</span>
-                </div>
-            ),
+            cell: ({ row }) => {
+                const primaryImage =
+                    row.original.images?.find((img) => img.is_primary) ||
+                    row.original.images?.[0];
+                const thumbnailUrl =
+                    primaryImage?.thumbnail_url || row.original.thumbnail_url;
+                return (
+                    <div className="flex items-center gap-3">
+                        {thumbnailUrl ? (
+                            <img
+                                src={thumbnailUrl}
+                                alt={row.original.name}
+                                className="h-10 w-10 rounded object-cover"
+                            />
+                        ) : (
+                            <div className="flex h-10 w-10 items-center justify-center rounded bg-muted text-xs text-muted-foreground">
+                                No img
+                            </div>
+                        )}
+                        <span className="font-medium">{row.original.name}</span>
+                    </div>
+                );
+            },
         },
         {
             accessorKey: 'category.name',

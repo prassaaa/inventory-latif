@@ -3,19 +3,21 @@
 namespace App\Services;
 
 use App\Models\Product;
+use App\Models\ProductImage;
 use Illuminate\Http\UploadedFile;
 
 class ProductService
 {
     private const IMAGE_FOLDER = 'products';
     private const IMAGE_PREFIX = 'product_';
+    private const MAX_IMAGES = 5;
 
     public function __construct(
         private ImageService $imageService
     ) {}
 
     /**
-     * Upload product image and create thumbnail
+     * Upload single product image and create thumbnail
      */
     public function uploadImage(UploadedFile $file): string
     {
@@ -27,6 +29,30 @@ class ProductService
     }
 
     /**
+     * Upload multiple images for a product
+     * @param Product $product
+     * @param array<UploadedFile> $files
+     * @param int $startOrder
+     */
+    public function uploadImages(Product $product, array $files, int $startOrder = 0): void
+    {
+        foreach ($files as $index => $file) {
+            if (!$file instanceof UploadedFile) {
+                continue;
+            }
+
+            $filename = $this->uploadImage($file);
+
+            ProductImage::create([
+                'product_id' => $product->id,
+                'image' => $filename,
+                'sort_order' => $startOrder + $index,
+                'is_primary' => $startOrder === 0 && $index === 0 && $product->images()->count() === 0,
+            ]);
+        }
+    }
+
+    /**
      * Delete product image and thumbnail
      */
     public function deleteImage(?string $filename): void
@@ -35,19 +61,54 @@ class ProductService
     }
 
     /**
-     * Update product image
+     * Delete a product image by ID
      */
-    public function updateImage(Product $product, ?UploadedFile $newImage): ?string
+    public function deleteProductImage(int $imageId): bool
     {
-        if (!$newImage) {
-            return $product->image;
+        $image = ProductImage::find($imageId);
+
+        if (!$image) {
+            return false;
         }
 
-        // Delete old image
-        $this->deleteImage($product->image);
+        $this->deleteImage($image->image);
+        $wasPrimary = $image->is_primary;
+        $productId = $image->product_id;
+        $image->delete();
 
-        // Upload new image
-        return $this->uploadImage($newImage);
+        // If deleted image was primary, set first remaining image as primary
+        if ($wasPrimary) {
+            $newPrimary = ProductImage::where('product_id', $productId)
+                ->orderBy('sort_order')
+                ->first();
+
+            if ($newPrimary) {
+                $newPrimary->update(['is_primary' => true]);
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Set an image as primary
+     */
+    public function setPrimaryImage(int $imageId): bool
+    {
+        $image = ProductImage::find($imageId);
+
+        if (!$image) {
+            return false;
+        }
+
+        // Remove primary from all images of this product
+        ProductImage::where('product_id', $image->product_id)
+            ->update(['is_primary' => false]);
+
+        // Set this image as primary
+        $image->update(['is_primary' => true]);
+
+        return true;
     }
 
     /**
@@ -91,9 +152,12 @@ class ProductService
     }
 
     /**
-     * Create product with image
+     * Create product with images
+     * @param array $data
+     * @param array<UploadedFile>|null $images
+     * @param int|null $userId
      */
-    public function createProduct(array $data, ?UploadedFile $image = null, ?int $userId = null): Product
+    public function createProduct(array $data, ?array $images = null, ?int $userId = null): Product
     {
         // Auto-generate SKU if not provided
         if (empty($data['sku'])) {
@@ -105,38 +169,67 @@ class ProductService
             $data['created_by'] = $userId;
         }
 
-        if ($image) {
-            $data['image'] = $this->uploadImage($image);
+        // Remove old single image field if present
+        unset($data['image']);
+
+        $product = Product::create($data);
+
+        // Upload images
+        if ($images && count($images) > 0) {
+            $this->uploadImages($product, array_slice($images, 0, self::MAX_IMAGES));
         }
 
-        return Product::create($data);
+        return $product->fresh(['images']);
     }
 
     /**
-     * Update product with image
+     * Update product with images
+     * @param Product $product
+     * @param array $data
+     * @param array<UploadedFile>|null $newImages
+     * @param int|null $userId
      */
-    public function updateProduct(Product $product, array $data, ?UploadedFile $image = null, ?int $userId = null): Product
+    public function updateProduct(Product $product, array $data, ?array $newImages = null, ?int $userId = null): Product
     {
         // Set updated_by
         if ($userId) {
             $data['updated_by'] = $userId;
         }
 
-        if ($image) {
-            $data['image'] = $this->updateImage($product, $image);
-        }
+        // Remove old single image field if present
+        unset($data['image']);
 
         $product->update($data);
 
-        return $product->fresh();
+        // Upload new images if provided
+        if ($newImages && count($newImages) > 0) {
+            $currentCount = $product->images()->count();
+            $availableSlots = self::MAX_IMAGES - $currentCount;
+
+            if ($availableSlots > 0) {
+                $imagesToUpload = array_slice($newImages, 0, $availableSlots);
+                $maxOrder = $product->images()->max('sort_order') ?? -1;
+                $this->uploadImages($product, $imagesToUpload, $maxOrder + 1);
+            }
+        }
+
+        return $product->fresh(['images']);
     }
 
     /**
-     * Delete product and its image
+     * Delete product and all its images
      */
     public function deleteProduct(Product $product): bool
     {
-        $this->deleteImage($product->image);
+        // Delete all images
+        foreach ($product->images as $image) {
+            $this->deleteImage($image->image);
+        }
+
+        // Delete old single image if exists
+        if ($product->image) {
+            $this->deleteImage($product->image);
+        }
 
         return $product->delete();
     }
@@ -149,10 +242,19 @@ class ProductService
         $newProduct = $product->replicate();
         $newProduct->sku = $newSku ?? $product->sku . '-COPY';
         $newProduct->name = $product->name . ' (Copy)';
-        $newProduct->image = null; // Don't copy image
+        $newProduct->image = null;
         $newProduct->save();
 
         return $newProduct;
     }
+
+    /**
+     * Get max images allowed
+     */
+    public function getMaxImages(): int
+    {
+        return self::MAX_IMAGES;
+    }
 }
+
 
