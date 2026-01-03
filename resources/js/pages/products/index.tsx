@@ -4,7 +4,12 @@ import { FilterBar } from '@/components/filter-bar';
 import { PageHeader } from '@/components/page-header';
 import { ActiveBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { usePermissions } from '@/hooks/use-permissions';
 import AppLayout from '@/layouts/app-layout';
 import { toast } from '@/lib/toast';
@@ -15,8 +20,9 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Eye, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
-interface ProductWithCategory extends Omit<Product, 'category'> {
+interface ProductWithCategory extends Omit<Product, 'category' | 'creator'> {
     category: { id: number; name: string } | null;
+    creator?: { id: number; name: string } | null;
 }
 
 interface Props {
@@ -34,7 +40,10 @@ export default function ProductIndex({ products, categories, filters }: Props) {
     const { can } = usePermissions();
     const [search, setSearch] = useState(filters.search ?? '');
     const [categoryId, setCategoryId] = useState(filters.category_id ?? '');
-    const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; product: ProductWithCategory | null }>({
+    const [deleteDialog, setDeleteDialog] = useState<{
+        open: boolean;
+        product: ProductWithCategory | null;
+    }>({
         open: false,
         product: null,
     });
@@ -42,18 +51,30 @@ export default function ProductIndex({ products, categories, filters }: Props) {
 
     const handleSearch = (value: string) => {
         setSearch(value);
-        router.get('/products', { search: value, category_id: categoryId }, { preserveState: true, preserveScroll: true });
+        router.get(
+            '/products',
+            { search: value, category_id: categoryId },
+            { preserveState: true, preserveScroll: true },
+        );
     };
 
     const handleCategoryChange = (value: string) => {
         setCategoryId(value);
-        router.get('/products', { search, category_id: value }, { preserveState: true, preserveScroll: true });
+        router.get(
+            '/products',
+            { search, category_id: value },
+            { preserveState: true, preserveScroll: true },
+        );
     };
 
     const handleClearFilters = () => {
         setSearch('');
         setCategoryId('');
-        router.get('/products', {}, { preserveState: true, preserveScroll: true });
+        router.get(
+            '/products',
+            {},
+            { preserveState: true, preserveScroll: true },
+        );
     };
 
     const handleDelete = () => {
@@ -62,11 +83,17 @@ export default function ProductIndex({ products, categories, filters }: Props) {
         const productName = deleteDialog.product.name;
         router.delete(`/products/${deleteDialog.product.id}`, {
             onSuccess: () => {
-                toast.success('Produk Berhasil Dihapus!', `Produk "${productName}" telah dihapus dari katalog`);
+                toast.success(
+                    'Produk Berhasil Dihapus!',
+                    `Produk "${productName}" telah dihapus dari katalog`,
+                );
                 setDeleteDialog({ open: false, product: null });
             },
             onError: (errors) => {
-                toast.error('Gagal Menghapus Produk', Object.values(errors)[0] as string);
+                toast.error(
+                    'Gagal Menghapus Produk',
+                    Object.values(errors)[0] as string,
+                );
             },
             onFinish: () => {
                 setIsDeleting(false);
@@ -78,7 +105,9 @@ export default function ProductIndex({ products, categories, filters }: Props) {
         {
             accessorKey: 'sku',
             header: 'SKU',
-            cell: ({ row }) => <span className="font-mono text-sm">{row.original.sku}</span>,
+            cell: ({ row }) => (
+                <span className="font-mono text-sm">{row.original.sku}</span>
+            ),
         },
         {
             accessorKey: 'name',
@@ -86,9 +115,13 @@ export default function ProductIndex({ products, categories, filters }: Props) {
             cell: ({ row }) => (
                 <div className="flex items-center gap-3">
                     {row.original.thumbnail_url ? (
-                        <img src={row.original.thumbnail_url} alt={row.original.name} className="h-10 w-10 rounded object-cover" />
+                        <img
+                            src={row.original.thumbnail_url}
+                            alt={row.original.name}
+                            className="h-10 w-10 rounded object-cover"
+                        />
                     ) : (
-                        <div className="h-10 w-10 rounded bg-muted flex items-center justify-center text-xs text-muted-foreground">
+                        <div className="flex h-10 w-10 items-center justify-center rounded bg-muted text-xs text-muted-foreground">
                             No img
                         </div>
                     )}
@@ -112,9 +145,16 @@ export default function ProductIndex({ products, categories, filters }: Props) {
             cell: ({ row }) => formatCurrency(row.original.price),
         },
         {
+            accessorKey: 'creator.name',
+            header: 'Dibuat Oleh',
+            cell: ({ row }) => row.original.creator?.name || '-',
+        },
+        {
             accessorKey: 'is_active',
             header: 'Status',
-            cell: ({ row }) => <ActiveBadge isActive={row.original.is_active} />,
+            cell: ({ row }) => (
+                <ActiveBadge isActive={row.original.is_active} />
+            ),
         },
         {
             id: 'actions',
@@ -134,7 +174,9 @@ export default function ProductIndex({ products, categories, filters }: Props) {
                         </DropdownMenuItem>
                         {can('edit_product') && (
                             <DropdownMenuItem asChild>
-                                <Link href={`/products/${row.original.id}/edit`}>
+                                <Link
+                                    href={`/products/${row.original.id}/edit`}
+                                >
                                     <Pencil className="mr-2 h-4 w-4" />
                                     Edit
                                 </Link>
@@ -143,7 +185,12 @@ export default function ProductIndex({ products, categories, filters }: Props) {
                         {can('delete_product') && (
                             <DropdownMenuItem
                                 className="text-red-600"
-                                onClick={() => setDeleteDialog({ open: true, product: row.original })}
+                                onClick={() =>
+                                    setDeleteDialog({
+                                        open: true,
+                                        product: row.original,
+                                    })
+                                }
                             >
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Hapus
@@ -155,20 +202,41 @@ export default function ProductIndex({ products, categories, filters }: Props) {
         },
     ];
 
-    const categoryOptions = categories.map((c) => ({ label: c.name, value: String(c.id) }));
+    const categoryOptions = categories.map((c) => ({
+        label: c.name,
+        value: String(c.id),
+    }));
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Produk" />
             <div className="flex flex-col gap-6 p-4">
-                <PageHeader title="Produk" description="Kelola data produk" action={can('create_product') ? { label: 'Tambah Produk', href: '/products/create' } : undefined} />
+                <PageHeader
+                    title="Produk"
+                    description="Kelola data produk"
+                    action={
+                        can('create_product')
+                            ? {
+                                  label: 'Tambah Produk',
+                                  href: '/products/create',
+                              }
+                            : undefined
+                    }
+                />
 
                 <FilterBar
                     searchPlaceholder="Cari produk..."
                     searchValue={search}
                     onSearchChange={handleSearch}
                     onClearFilters={handleClearFilters}
-                    filters={[{ label: 'Kategori', value: categoryId, options: categoryOptions, onChange: handleCategoryChange }]}
+                    filters={[
+                        {
+                            label: 'Kategori',
+                            value: categoryId,
+                            options: categoryOptions,
+                            onChange: handleCategoryChange,
+                        },
+                    ]}
                 />
 
                 <DataTable
@@ -178,14 +246,21 @@ export default function ProductIndex({ products, categories, filters }: Props) {
                         pageIndex: products.current_page,
                         pageSize: products.per_page,
                         pageCount: products.last_page,
-                        onPageChange: (page) => router.get('/products', { ...filters, page }, { preserveState: true }),
+                        onPageChange: (page) =>
+                            router.get(
+                                '/products',
+                                { ...filters, page },
+                                { preserveState: true },
+                            ),
                     }}
                 />
             </div>
 
             <DeleteDialog
                 open={deleteDialog.open}
-                onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}
+                onOpenChange={(open) =>
+                    setDeleteDialog({ ...deleteDialog, open })
+                }
                 onConfirm={handleDelete}
                 isLoading={isDeleting}
                 itemName={deleteDialog.product?.name}
@@ -193,4 +268,3 @@ export default function ProductIndex({ products, categories, filters }: Props) {
         </AppLayout>
     );
 }
-

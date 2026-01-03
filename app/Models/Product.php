@@ -19,6 +19,8 @@ class Product extends Model
         'image',
         'description',
         'is_active',
+        'created_by',
+        'updated_by',
     ];
 
     protected $appends = ['image_url', 'thumbnail_url'];
@@ -50,6 +52,16 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updater(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     public function branchStocks(): HasMany

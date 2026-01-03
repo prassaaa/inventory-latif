@@ -36,12 +36,6 @@ class RolePermissionSeeder extends Seeder
             'edit_product',
             'delete_product',
 
-            // Product Request permissions
-            'view_product_requests',
-            'create_product_request',
-            'approve_product_request',
-            'reject_product_request',
-
             // User permissions
             'view_users',
             'create_user',
@@ -86,8 +80,8 @@ class RolePermissionSeeder extends Seeder
         $adminCabang->givePermissionTo([
             'view_categories',
             'view_products',
-            'view_product_requests',
-            'create_product_request',
+            'create_product',
+            'edit_product',
             'view_users',
             'view_branch_stocks',
             'view_branch_transfers',

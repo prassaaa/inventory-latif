@@ -17,7 +17,6 @@ import {
     ArrowLeftRight,
     BarChart3,
     Building2,
-    FileText,
     FolderTree,
     LayoutGrid,
     Package,
@@ -59,13 +58,6 @@ export function AppSidebar() {
             title: 'Produk',
             href: '/products',
             icon: Package,
-        },
-        {
-            title: 'Request Produk',
-            href: '/product-requests',
-            icon: FileText,
-            badge: notifications.productRequests,
-            badgeVariant: 'destructive',
         },
         ...(isSuperAdmin
             ? [

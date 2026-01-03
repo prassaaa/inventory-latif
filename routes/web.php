@@ -4,7 +4,6 @@ use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\ProductRequestController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\StockController;
@@ -41,11 +40,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('categories', CategoryController::class);
     Route::resource('products', ProductController::class);
     Route::resource('users', UserController::class);
-
-    // Product Requests
-    Route::resource('product-requests', ProductRequestController::class)->except(['edit', 'update', 'destroy']);
-    Route::post('product-requests/{product_request}/approve', [ProductRequestController::class, 'approve'])->name('product-requests.approve');
-    Route::post('product-requests/{product_request}/reject', [ProductRequestController::class, 'reject'])->name('product-requests.reject');
 
     // Stock Management
     Route::get('stocks', [StockController::class, 'index'])->name('stocks.index');

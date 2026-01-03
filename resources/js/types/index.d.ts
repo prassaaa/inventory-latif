@@ -123,38 +123,11 @@ export interface Product {
     image_url: string | null;
     thumbnail_url: string | null;
     is_active: boolean;
+    created_by: number | null;
+    updated_by: number | null;
+    creator?: User | null;
+    updater?: User | null;
     branch_stocks?: BranchStock[];
-    created_at: string;
-    updated_at: string;
-}
-
-export type ProductRequestStatus = 'pending' | 'approved' | 'rejected';
-
-export interface ProductRequest {
-    id: number;
-    branch_id: number;
-    requested_by: number;
-    sku: string;
-    name: string;
-    category_id: number;
-    color: string | null;
-    size: string | null;
-    price: number;
-    image: string | null;
-    image_url: string | null;
-    thumbnail_url: string | null;
-    description: string | null;
-    status: ProductRequestStatus;
-    request_notes: string | null;
-    approved_by: number | null;
-    approved_at: string | null;
-    rejection_reason: string | null;
-    product_id: number | null;
-    branch?: Branch;
-    requested_by_user?: User;
-    category?: Category;
-    approved_by_user?: User;
-    product?: Product;
     created_at: string;
     updated_at: string;
 }
@@ -176,7 +149,12 @@ export interface BranchStock {
 }
 
 export type StockMovementType = 'in' | 'out';
-export type StockReferenceType = 'sale' | 'transfer_in' | 'transfer_out' | 'adjustment' | 'initial';
+export type StockReferenceType =
+    | 'sale'
+    | 'transfer_in'
+    | 'transfer_out'
+    | 'adjustment'
+    | 'initial';
 
 export interface StockMovement {
     id: number;
@@ -201,7 +179,13 @@ export interface StockMovement {
 // Transfer Types
 // ============================================
 
-export type TransferStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'sent' | 'received';
+export type TransferStatus =
+    | 'draft'
+    | 'pending'
+    | 'approved'
+    | 'rejected'
+    | 'sent'
+    | 'received';
 
 export interface Transfer {
     id: number;

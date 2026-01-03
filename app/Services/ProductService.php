@@ -93,11 +93,16 @@ class ProductService
     /**
      * Create product with image
      */
-    public function createProduct(array $data, ?UploadedFile $image = null): Product
+    public function createProduct(array $data, ?UploadedFile $image = null, ?int $userId = null): Product
     {
         // Auto-generate SKU if not provided
         if (empty($data['sku'])) {
             $data['sku'] = $this->generateSku();
+        }
+
+        // Set created_by
+        if ($userId) {
+            $data['created_by'] = $userId;
         }
 
         if ($image) {
@@ -110,8 +115,13 @@ class ProductService
     /**
      * Update product with image
      */
-    public function updateProduct(Product $product, array $data, ?UploadedFile $image = null): Product
+    public function updateProduct(Product $product, array $data, ?UploadedFile $image = null, ?int $userId = null): Product
     {
+        // Set updated_by
+        if ($userId) {
+            $data['updated_by'] = $userId;
+        }
+
         if ($image) {
             $data['image'] = $this->updateImage($product, $image);
         }

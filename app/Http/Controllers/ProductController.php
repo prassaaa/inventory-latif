@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Services\ProductService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -33,7 +34,7 @@ class ProductController extends Controller
             ->when($request->category_id, function ($query, $categoryId) {
                 $query->where('category_id', $categoryId);
             })
-            ->with('category:id,name')
+            ->with(['category:id,name', 'creator:id,name'])
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -60,7 +61,8 @@ class ProductController extends Controller
     {
         $this->productService->createProduct(
             $request->validated(),
-            $request->file('image')
+            $request->file('image'),
+            Auth::id()
         );
 
         return redirect()->route('products.index')
@@ -69,7 +71,7 @@ class ProductController extends Controller
 
     public function show(Product $product): Response
     {
-        $product->load(['category', 'branchStocks.branch']);
+        $product->load(['category', 'branchStocks.branch', 'creator:id,name', 'updater:id,name']);
 
         return Inertia::render('products/show', [
             'product' => $product,
@@ -91,7 +93,8 @@ class ProductController extends Controller
         $this->productService->updateProduct(
             $product,
             $request->validated(),
-            $request->file('image')
+            $request->file('image'),
+            Auth::id()
         );
 
         return redirect()->route('products.index')
