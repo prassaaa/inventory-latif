@@ -419,7 +419,7 @@ export default function ProductCreate({
                                     </div>
                                     <FormDescription className="mt-2">
                                         Maks {maxImages} gambar. Format: JPG,
-                                        PNG. Max 2MB per gambar
+                                        PNG. Max 5MB per gambar
                                     </FormDescription>
                                 </div>
 
