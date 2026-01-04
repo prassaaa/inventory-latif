@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
+use App\Models\Branch;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductImage;
@@ -51,10 +52,17 @@ class ProductController extends Controller
 
     public function create(): Response
     {
+        $user = Auth::user();
         $categories = Category::active()->get(['id', 'name']);
+        $branches = $user->isSuperAdmin()
+            ? Branch::active()->get(['id', 'name', 'code'])
+            : collect([$user->branch]);
 
         return Inertia::render('products/create', [
             'categories' => $categories,
+            'branches' => $branches,
+            'userBranchId' => $user->branch_id,
+            'isSuperAdmin' => $user->isSuperAdmin(),
             'maxImages' => $this->productService->getMaxImages(),
         ]);
     }
@@ -82,12 +90,17 @@ class ProductController extends Controller
 
     public function edit(Product $product): Response
     {
-        $product->load('images');
+        $user = Auth::user();
+        $product->load(['images', 'branchStocks.branch']);
         $categories = Category::active()->get(['id', 'name']);
+        $branches = Branch::active()->get(['id', 'name', 'code']);
 
         return Inertia::render('products/edit', [
             'product' => $product,
             'categories' => $categories,
+            'branches' => $branches,
+            'isSuperAdmin' => $user->isSuperAdmin(),
+            'userBranchId' => $user->branch_id,
             'maxImages' => $this->productService->getMaxImages(),
         ]);
     }

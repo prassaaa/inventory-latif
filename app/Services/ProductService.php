@@ -2,8 +2,12 @@
 
 namespace App\Services;
 
+use App\Enums\StockMovementType;
+use App\Enums\StockReferenceType;
+use App\Models\BranchStock;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Models\StockMovement;
 use Illuminate\Http\UploadedFile;
 
 class ProductService
@@ -159,6 +163,14 @@ class ProductService
      */
     public function createProduct(array $data, ?array $images = null, ?int $userId = null): Product
     {
+        // Extract stock data before creating product
+        $branchId = $data['branch_id'] ?? null;
+        $initialStock = $data['initial_stock'] ?? null;
+        $minStock = $data['min_stock'] ?? 5;
+
+        // Remove stock fields from product data
+        unset($data['branch_id'], $data['initial_stock'], $data['min_stock']);
+
         // Auto-generate SKU if not provided
         if (empty($data['sku'])) {
             $data['sku'] = $this->generateSku();
@@ -179,7 +191,41 @@ class ProductService
             $this->uploadImages($product, array_slice($images, 0, self::MAX_IMAGES));
         }
 
+        // Create initial stock if provided
+        if ($branchId && $initialStock !== null && $initialStock > 0) {
+            $this->createInitialStock($product, $branchId, $initialStock, $minStock, $userId);
+        }
+
         return $product->fresh(['images']);
+    }
+
+    /**
+     * Create initial stock for a product
+     */
+    public function createInitialStock(Product $product, int $branchId, int $quantity, int $minStock = 5, ?int $userId = null): BranchStock
+    {
+        $branchStock = BranchStock::create([
+            'branch_id' => $branchId,
+            'product_id' => $product->id,
+            'quantity' => $quantity,
+            'min_stock' => $minStock,
+        ]);
+
+        // Log stock movement
+        StockMovement::create([
+            'branch_id' => $branchId,
+            'product_id' => $product->id,
+            'type' => StockMovementType::IN,
+            'reference_type' => StockReferenceType::ADJUSTMENT,
+            'reference_id' => null,
+            'quantity' => $quantity,
+            'stock_before' => 0,
+            'stock_after' => $quantity,
+            'notes' => 'Stok awal produk',
+            'created_by' => $userId,
+        ]);
+
+        return $branchStock;
     }
 
     /**

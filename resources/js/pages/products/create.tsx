@@ -28,7 +28,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { toast } from '@/lib/toast';
-import type { BreadcrumbItem, Category } from '@/types';
+import type { Branch, BreadcrumbItem, Category } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Head, router } from '@inertiajs/react';
 import { Loader2, Plus, X } from 'lucide-react';
@@ -45,6 +45,10 @@ const productSchema = z.object({
     size: z.string().max(50).optional().nullable(),
     price: z.number().min(0, 'Harga tidak boleh negatif'),
     is_active: z.boolean(),
+    // Initial stock fields
+    branch_id: z.string().optional(),
+    initial_stock: z.number().min(0).optional().nullable(),
+    min_stock: z.number().min(0).optional().nullable(),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -56,6 +60,9 @@ interface ImagePreview {
 
 interface Props {
     categories: Category[];
+    branches: Branch[];
+    userBranchId: number | null;
+    isSuperAdmin: boolean;
     maxImages: number;
 }
 
@@ -65,7 +72,13 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Tambah Produk', href: '/products/create' },
 ];
 
-export default function ProductCreate({ categories, maxImages = 5 }: Props) {
+export default function ProductCreate({
+    categories,
+    branches,
+    userBranchId,
+    isSuperAdmin,
+    maxImages = 5,
+}: Props) {
     const [images, setImages] = useState<ImagePreview[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -80,6 +93,10 @@ export default function ProductCreate({ categories, maxImages = 5 }: Props) {
             size: '',
             price: undefined,
             is_active: true,
+            // Stock defaults
+            branch_id: userBranchId ? String(userBranchId) : '',
+            initial_stock: undefined,
+            min_stock: 5,
         },
     });
 
@@ -425,6 +442,147 @@ export default function ProductCreate({ categories, maxImages = 5 }: Props) {
                                         </FormItem>
                                     )}
                                 />
+
+                                {/* Initial Stock Section */}
+                                <div className="border-t pt-4">
+                                    <h3 className="mb-4 text-lg font-semibold">
+                                        Stok Awal (Opsional)
+                                    </h3>
+                                    <div className="grid gap-4 sm:grid-cols-3">
+                                        {isSuperAdmin && (
+                                            <FormField
+                                                control={form.control}
+                                                name="branch_id"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>
+                                                            Cabang
+                                                        </FormLabel>
+                                                        <Select
+                                                            onValueChange={
+                                                                field.onChange
+                                                            }
+                                                            defaultValue={
+                                                                field.value
+                                                            }
+                                                        >
+                                                            <FormControl>
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder="Pilih cabang" />
+                                                                </SelectTrigger>
+                                                            </FormControl>
+                                                            <SelectContent>
+                                                                {branches.map(
+                                                                    (
+                                                                        branch,
+                                                                    ) => (
+                                                                        <SelectItem
+                                                                            key={
+                                                                                branch.id
+                                                                            }
+                                                                            value={String(
+                                                                                branch.id,
+                                                                            )}
+                                                                        >
+                                                                            {
+                                                                                branch.name
+                                                                            }
+                                                                        </SelectItem>
+                                                                    ),
+                                                                )}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        )}
+                                        {!isSuperAdmin && branches[0] && (
+                                            <div>
+                                                <FormLabel>Cabang</FormLabel>
+                                                <p className="mt-2 text-sm text-muted-foreground">
+                                                    {branches[0].name}
+                                                </p>
+                                            </div>
+                                        )}
+                                        <FormField
+                                            control={form.control}
+                                            name="initial_stock"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>
+                                                        Stok Awal
+                                                    </FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            type="number"
+                                                            min="0"
+                                                            placeholder="0"
+                                                            {...field}
+                                                            value={
+                                                                field.value ??
+                                                                ''
+                                                            }
+                                                            onChange={(e) =>
+                                                                field.onChange(
+                                                                    e.target
+                                                                        .value
+                                                                        ? Number(
+                                                                              e
+                                                                                  .target
+                                                                                  .value,
+                                                                          )
+                                                                        : undefined,
+                                                                )
+                                                            }
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="min_stock"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>
+                                                        Stok Minimal
+                                                    </FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            type="number"
+                                                            min="0"
+                                                            placeholder="5"
+                                                            {...field}
+                                                            value={
+                                                                field.value ??
+                                                                ''
+                                                            }
+                                                            onChange={(e) =>
+                                                                field.onChange(
+                                                                    e.target
+                                                                        .value
+                                                                        ? Number(
+                                                                              e
+                                                                                  .target
+                                                                                  .value,
+                                                                          )
+                                                                        : undefined,
+                                                                )
+                                                            }
+                                                        />
+                                                    </FormControl>
+                                                    <FormDescription>
+                                                        Peringatan jika stok di
+                                                        bawah nilai ini
+                                                    </FormDescription>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
+                                </div>
 
                                 <div className="flex gap-4">
                                     <Button

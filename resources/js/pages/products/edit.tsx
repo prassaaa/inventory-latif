@@ -28,10 +28,17 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { toast } from '@/lib/toast';
-import type { BreadcrumbItem, Category, Product, ProductImage } from '@/types';
+import type {
+    Branch,
+    BranchStock,
+    BreadcrumbItem,
+    Category,
+    Product,
+    ProductImage,
+} from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Head, router } from '@inertiajs/react';
-import { Loader2, Plus, Star, Trash2, X } from 'lucide-react';
+import { Head, Link, router } from '@inertiajs/react';
+import { Loader2, Package, Plus, Star, Trash2, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -56,8 +63,14 @@ interface ImagePreview {
 }
 
 interface Props {
-    product: Product & { images?: ProductImage[] };
+    product: Product & {
+        images?: ProductImage[];
+        branch_stocks?: (BranchStock & { branch: Branch })[];
+    };
     categories: Category[];
+    branches: Branch[];
+    isSuperAdmin: boolean;
+    userBranchId: number | null;
     maxImages: number;
 }
 
@@ -520,6 +533,76 @@ export default function ProductEdit({
                                         </FormItem>
                                     )}
                                 />
+
+                                {/* Stock per Branch Section */}
+                                <div className="border-t pt-4">
+                                    <div className="mb-4 flex items-center justify-between">
+                                        <h3 className="text-lg font-semibold">
+                                            Stok Per Cabang
+                                        </h3>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            asChild
+                                        >
+                                            <Link href="/stocks/adjust">
+                                                <Plus className="mr-1 h-4 w-4" />
+                                                Sesuaikan Stok
+                                            </Link>
+                                        </Button>
+                                    </div>
+                                    {product.branch_stocks &&
+                                    product.branch_stocks.length > 0 ? (
+                                        <div className="space-y-2">
+                                            {product.branch_stocks.map(
+                                                (stock) => (
+                                                    <div
+                                                        key={stock.id}
+                                                        className="flex items-center justify-between rounded-lg border p-3"
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <Package className="h-5 w-5 text-muted-foreground" />
+                                                            <div>
+                                                                <p className="font-medium">
+                                                                    {
+                                                                        stock
+                                                                            .branch
+                                                                            ?.name
+                                                                    }
+                                                                </p>
+                                                                <p className="text-sm text-muted-foreground">
+                                                                    Min:{' '}
+                                                                    {
+                                                                        stock.min_stock
+                                                                    }{' '}
+                                                                    unit
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <div
+                                                            className={`text-lg font-bold ${
+                                                                stock.quantity <=
+                                                                stock.min_stock
+                                                                    ? 'text-destructive'
+                                                                    : ''
+                                                            }`}
+                                                        >
+                                                            {stock.quantity}{' '}
+                                                            unit
+                                                        </div>
+                                                    </div>
+                                                ),
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground">
+                                            Belum ada stok di cabang manapun.
+                                            Gunakan tombol "Sesuaikan Stok"
+                                            untuk menambahkan.
+                                        </p>
+                                    )}
+                                </div>
 
                                 <div className="flex gap-4">
                                     <Button

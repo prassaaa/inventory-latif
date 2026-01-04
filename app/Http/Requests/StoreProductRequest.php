@@ -25,6 +25,10 @@ class StoreProductRequest extends FormRequest
             'description' => 'nullable|string',
             'location_description' => 'nullable|string|max:500',
             'is_active' => 'boolean',
+            // Initial stock fields
+            'branch_id' => 'nullable|exists:branches,id',
+            'initial_stock' => 'nullable|integer|min:0',
+            'min_stock' => 'nullable|integer|min:0',
         ];
     }
 
