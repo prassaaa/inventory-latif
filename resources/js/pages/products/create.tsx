@@ -446,7 +446,7 @@ export default function ProductCreate({
                                 {/* Initial Stock Section */}
                                 <div className="border-t pt-4">
                                     <h3 className="mb-4 text-lg font-semibold">
-                                        Stok Awal (Opsional)
+                                        Stok Awal
                                     </h3>
                                     <div className="grid gap-4 sm:grid-cols-3">
                                         {isSuperAdmin && (
