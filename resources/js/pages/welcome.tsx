@@ -20,6 +20,7 @@ import {
     Search,
     ShoppingBag,
     Store,
+    User,
     X,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -513,7 +514,7 @@ function ProductCard({ product }: { product: ProductWithCategory }) {
                                                         className="flex items-center justify-between text-sm"
                                                     >
                                                         <span className="flex items-center gap-1 font-medium text-black">
-                                                            <MapPin className="h-3 w-3" />
+                                                            <User className="h-3 w-3" />
                                                             {stock.branch.name}
                                                         </span>
                                                         <span className="rounded-sm border border-black bg-white px-1.5 font-bold text-black">
