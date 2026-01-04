@@ -21,7 +21,7 @@ class StoreProductRequest extends FormRequest
             'size' => 'nullable|string|max:50',
             'price' => 'required|numeric|min:0',
             'images' => 'nullable|array|max:5',
-            'images.*' => 'image|max:2048',
+            'images.*' => 'image|max:5048',
             'description' => 'nullable|string',
             'location_description' => 'nullable|string|max:500',
             'is_active' => 'boolean',
@@ -43,7 +43,7 @@ class StoreProductRequest extends FormRequest
             'price.min' => 'Harga tidak boleh negatif.',
             'images.max' => 'Maksimal 5 gambar.',
             'images.*.image' => 'File harus berupa gambar.',
-            'images.*.max' => 'Ukuran gambar maksimal 2MB.',
+            'images.*.max' => 'Ukuran gambar maksimal 5 MB.',
         ];
     }
 }
