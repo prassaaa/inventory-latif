@@ -21,7 +21,7 @@ class StoreProductRequest extends FormRequest
             'size' => 'nullable|string|max:50',
             'price' => 'required|numeric|min:0',
             'images' => 'nullable|array|max:5',
-            'images.*' => 'image|max:5048',
+            'images.*' => 'image|max:10240',
             'description' => 'nullable|string',
             'location_description' => 'nullable|string|max:500',
             'is_active' => 'boolean',
