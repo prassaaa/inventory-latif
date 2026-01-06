@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\TransferStatus;
+use App\Enums\TransferType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,6 +12,7 @@ class Transfer extends Model
 {
     protected $fillable = [
         'transfer_number',
+        'type',
         'from_branch_id',
         'to_branch_id',
         'requested_by',
@@ -30,6 +32,7 @@ class Transfer extends Model
     protected function casts(): array
     {
         return [
+            'type' => TransferType::class,
             'status' => TransferStatus::class,
             'requested_at' => 'datetime',
             'approved_at' => 'datetime',

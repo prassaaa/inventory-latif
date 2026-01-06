@@ -14,8 +14,9 @@ class StoreTransferRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'from_branch_id' => 'required|exists:branches,id',
-            'to_branch_id' => 'nullable|exists:branches,id|different:from_branch_id',
+            'type' => 'required|in:request,send',
+            'from_branch_id' => 'nullable|exists:branches,id',
+            'to_branch_id' => 'nullable|exists:branches,id',
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',

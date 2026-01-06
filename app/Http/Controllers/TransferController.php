@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\StockMovementType;
 use App\Enums\StockReferenceType;
 use App\Enums\TransferStatus;
+use App\Enums\TransferType;
 use App\Http\Requests\StoreTransferRequest;
 use App\Models\Branch;
 use App\Models\BranchStock;
@@ -72,17 +73,24 @@ class TransferController extends Controller
         $branches = Branch::active()->where('id', '!=', $user->branch_id)->get(['id', 'name', 'code']);
         $products = Product::active()->get(['id', 'name', 'sku']);
 
-        // Get stocks for all branches (for dynamic loading)
+        // Get stocks for all branches (for dynamic loading when requesting)
         $allBranchStocks = BranchStock::with('product:id,name,sku')
             ->whereIn('branch_id', $branches->pluck('id'))
             ->get()
             ->groupBy('branch_id');
 
+        // Get user's own branch stock (for sending)
+        $userBranchStocks = BranchStock::with('product:id,name,sku')
+            ->where('branch_id', $user->branch_id)
+            ->get();
+
         return Inertia::render('transfers/create', [
             'branches' => $branches,
             'products' => $products,
             'allBranchStocks' => $allBranchStocks,
+            'userBranchStocks' => $userBranchStocks,
             'userBranch' => $userBranch,
+            'transferTypes' => TransferType::options(),
         ]);
     }
 
@@ -91,15 +99,25 @@ class TransferController extends Controller
         $user = Auth::user();
         $validated = $request->validated();
 
-        // Determine from_branch and to_branch
-        $fromBranchId = $validated['from_branch_id'];
-        $toBranchId = $validated['to_branch_id'] ?? $user->branch_id;
+        // Determine from_branch and to_branch based on type
+        $type = $validated['type'];
+
+        if ($type === 'send') {
+            // User is SENDING stock: from = user's branch, to = selected branch
+            $fromBranchId = $user->branch_id;
+            $toBranchId = $validated['to_branch_id'];
+        } else {
+            // User is REQUESTING stock: from = selected branch, to = user's branch
+            $fromBranchId = $validated['from_branch_id'];
+            $toBranchId = $user->branch_id;
+        }
 
         $fromBranch = Branch::find($fromBranchId);
 
-        DB::transaction(function () use ($validated, $user, $fromBranch, $fromBranchId, $toBranchId) {
+        DB::transaction(function () use ($validated, $user, $fromBranch, $fromBranchId, $toBranchId, $type) {
             $transfer = Transfer::create([
                 'transfer_number' => Transfer::generateTransferNumber($fromBranch->code),
+                'type' => $type,
                 'from_branch_id' => $fromBranchId,
                 'to_branch_id' => $toBranchId,
                 'status' => TransferStatus::PENDING,
@@ -117,8 +135,10 @@ class TransferController extends Controller
             }
         });
 
+        $message = $type === 'send' ? 'Transfer pengiriman berhasil dibuat.' : 'Transfer permintaan berhasil dibuat.';
+
         return redirect()->route('transfers.index')
-            ->with('success', 'Transfer request berhasil dibuat.');
+            ->with('success', $message);
     }
 
     public function show(Transfer $transfer): Response
